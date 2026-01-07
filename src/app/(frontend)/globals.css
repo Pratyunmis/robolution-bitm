@@ -166,3 +166,82 @@ html.lenis body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Performance Optimizations for Animations */
+@layer utilities {
+  /* GPU acceleration for animated elements */
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .will-change-opacity {
+    will-change: opacity;
+  }
+
+  /* Container for hardware-accelerated animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  /* Reduce motion for users who prefer it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Mobile-first responsive improvements */
+@media (max-width: 480px) {
+  /* Smaller touch targets on very small devices */
+  .text-8xl {
+    font-size: clamp(2.5rem, 10vw, 4rem);
+  }
+
+  .text-7xl {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+
+  .text-6xl {
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+  }
+}
+
+/* Better touch feedback on mobile */
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a,
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Reduce hover effects that don't work well on touch */
+  .group:hover .group-hover\:scale-110,
+  .hover\:scale-105:hover {
+    transform: none;
+  }
+}
+
+/* Smooth scroll performance */
+@supports (scroll-behavior: smooth) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Optimize backdrop-blur performance */
+@supports (backdrop-filter: blur(1px)) {
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
+    transform: translateZ(0);
+  }
+}

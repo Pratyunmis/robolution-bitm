@@ -307,6 +307,23 @@ export default function TeamPageClient({ members }: TeamPageClientProps) {
             </div>
           </div>
         </section>
+
+        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
+            CAPTAINS
+          </h2>
+
+          <div>
+            {/* Captain - Center */}
+            {renderMemberRow(grouped.captains.captain, 'captain')}
+
+            {/* Vice Captains - Side by side */}
+            <div className="flex flex-wrap justify-center gap-6">
+              {renderMemberRow(grouped.captains.viceCaptain, 'vice-captain')}
+            </div>
+          </div>
+        </section>
+
         <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
             SECRETARIES

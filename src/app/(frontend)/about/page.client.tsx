@@ -1,5 +1,5 @@
 'use client'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
 import Link from 'next/link'
 import { AboutUs } from '@/payload-types'
@@ -26,7 +26,7 @@ const AboutPageClient = ({
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-100 bg-white/5 blur-[120px] rounded-full -z-10" />
 
         <div className="max-w-6xl mx-auto text-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -44,14 +44,14 @@ const AboutPageClient = ({
                 {data.heroSubtitle}
               </p>
             )}
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
       {/* Main Content (Who Are We) */}
       <section className="relative z-10 py-20 px-4">
         <div className="max-w-5xl mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -69,14 +69,14 @@ const AboutPageClient = ({
                 Meet our team →
               </Link>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
       {/* Vision & Mission Section */}
       <section className="relative z-10 py-20 px-4 bg-black/50 backdrop-blur-lg border-y border-white/5">
         <div className="max-w-5xl mx-auto">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -118,7 +118,7 @@ const AboutPageClient = ({
                 </div>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -126,7 +126,7 @@ const AboutPageClient = ({
       {values && values.length > 0 && (
         <section className="relative z-10 py-20 px-4">
           <div className="max-w-6xl mx-auto">
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
@@ -139,7 +139,7 @@ const AboutPageClient = ({
                     ? LucideIcons[value.icon as keyof typeof LucideIcons]
                     : LucideIcons.HelpCircle
                   return (
-                    <motion.div
+                    <m.div
                       key={index}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -154,11 +154,11 @@ const AboutPageClient = ({
                       </div>
                       <h3 className="text-xl font-bold mb-3">{value.title}</h3>
                       <p className="text-sm text-white/60 leading-relaxed">{value.description}</p>
-                    </motion.div>
+                    </m.div>
                   )
                 })}
               </div>
-            </motion.div>
+            </m.div>
           </div>
         </section>
       )}
@@ -167,7 +167,7 @@ const AboutPageClient = ({
       {achievements && achievements.length > 0 && (
         <section className="relative z-10 py-20 px-4 bg-black/50 backdrop-blur-lg border-y border-white/5">
           <div className="max-w-5xl mx-auto">
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
@@ -176,7 +176,7 @@ const AboutPageClient = ({
 
               <div className="space-y-8">
                 {achievements.map((milestone, index) => (
-                  <motion.div
+                  <m.div
                     key={index}
                     initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -192,10 +192,10 @@ const AboutPageClient = ({
                         <p className="text-white/60 leading-relaxed">{milestone.description}</p>
                       </div>
                     </div>
-                  </motion.div>
+                  </m.div>
                 ))}
               </div>
-            </motion.div>
+            </m.div>
           </div>
         </section>
       )}

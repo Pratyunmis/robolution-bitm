@@ -1,7 +1,7 @@
 'use client'
 
 import DarkVeil from '@/components/DarkVeil'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { Calendar, MapPin, Users, ExternalLink, Clock } from 'lucide-react'
 import { useState } from 'react'
 import Image from 'next/image'
@@ -69,7 +69,7 @@ const EventsPageClient = ({ events: initialEvents }: EventsPageClientProps) => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-200 h-[40vh] max-h-100 bg-white/5 blur-[120px] rounded-full -z-10" />
 
         <div className="max-w-6xl mx-auto text-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -85,7 +85,7 @@ const EventsPageClient = ({ events: initialEvents }: EventsPageClientProps) => {
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/70 max-w-3xl mx-auto leading-relaxed px-4">
               Join us for workshops, competitions, and tech talks. Experience innovation in action.
             </p>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
@@ -133,7 +133,7 @@ const EventsPageClient = ({ events: initialEvents }: EventsPageClientProps) => {
                   event.title
 
                 return (
-                  <motion.div
+                  <m.div
                     key={event.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -232,7 +232,7 @@ const EventsPageClient = ({ events: initialEvents }: EventsPageClientProps) => {
                         )}
                       </div>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )
               })}
             </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useState } from 'react'
 import { X, ChevronLeft, ChevronRight, Camera, ZoomIn, Loader2 } from 'lucide-react'
@@ -27,25 +27,27 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
   const [isImageLoading, setIsImageLoading] = useState(false)
   const [imageDirection, setImageDirection] = useState<'left' | 'right' | null>(null)
 
+  // Performance optimization: limit stagger to first 12 items
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05,
+        staggerChildren: 0.03, // Reduced for faster load
+        delayChildren: 0.1,
       },
     },
   }
 
+  // Simplified item variants - removed scale for performance
   const itemVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.9 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: {
-        duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94] as const,
+        duration: 0.4,
+        ease: [0, 0, 0.2, 1] as const, // easeOut cubic bezier
       },
     },
   }
@@ -103,7 +105,7 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-200 h-[40vh] max-h-100 bg-white/5 blur-[120px] rounded-full -z-10" />
 
         <div className="max-w-7xl mx-auto text-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -115,9 +117,9 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
               <span>Gallery</span>
             </div>
             <div className="h-px w-32 mx-auto bg-linear-to-r from-transparent via-white/30 to-transparent" />
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
@@ -126,9 +128,9 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
             <span className="bg-linear-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
               Our Journey
             </span>
-          </motion.h1>
+          </m.h1>
 
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
@@ -136,9 +138,9 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
           >
             A visual chronicle of innovation, collaboration, and technological excellence at
             Robolution
-          </motion.p>
+          </m.p>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -147,29 +149,30 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
             <span className="text-sm uppercase tracking-wider">
               {images.length} {images.length === 1 ? 'Photo' : 'Photos'}
             </span>
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
       {/* Gallery Grid */}
       <section className="relative z-10 py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <motion.div
+          <m.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
             {images.map((image, index) => (
-              <motion.div
+              <m.div
                 key={image.id}
-                variants={itemVariants}
-                whileHover={{ scale: 1.03, zIndex: 10 }}
+                variants={index < 12 ? itemVariants : undefined} // Only animate first 12 items
+                initial={index >= 12 ? { opacity: 1, y: 0 } : undefined}
                 onClick={() => {
                   setSelectedImage(index)
                   setIsImageLoading(true)
                 }}
-                className="relative aspect-square  rounded-2xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer"
+                className="relative aspect-square rounded-2xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer transition-transform duration-300 hover:scale-[1.02] hover:z-10"
+                style={{ willChange: 'transform' }}
               >
                 {/* Image */}
                 <Image
@@ -202,16 +205,16 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
 
                 {/* Shine Effect */}
                 <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -translate-x-full group-hover:translate-x-full" />
-              </motion.div>
+              </m.div>
             ))}
-          </motion.div>
+          </m.div>
         </div>
       </section>
 
       {/* Lightbox Modal */}
       <AnimatePresence>
         {selectedImage !== null && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -250,7 +253,7 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
             </button>
 
             {/* Image Container */}
-            <motion.div
+            <m.div
               variants={modalVariants}
               initial="hidden"
               animate="visible"
@@ -261,7 +264,7 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
               {/* Loading Spinner */}
               <AnimatePresence>
                 {isImageLoading && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -272,11 +275,11 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
                       <Loader2 className="w-12 h-12 text-white animate-spin" />
                       <p className="text-white/70 text-sm font-medium">Loading image...</p>
                     </div>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
 
-              <motion.div
+              <m.div
                 key={selectedImage}
                 initial={{
                   opacity: 0,
@@ -304,7 +307,7 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
                   priority
                   onLoadingComplete={() => setIsImageLoading(false)}
                 />
-              </motion.div>
+              </m.div>
 
               {/* Image Info - No caption, just counter */}
               <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-8">
@@ -312,8 +315,8 @@ export const GalleryClient: React.FC<GalleryClientProps> = ({ images }) => {
                   {selectedImage + 1} / {images.length}
                 </p>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
