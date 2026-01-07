@@ -18,7 +18,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import CountUp from '@/components/CountUp'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import { SponsorsSection } from '@/components/SponsorsSection'
 import { GalleryPreview } from '@/components/GalleryPreview'
 
@@ -113,14 +113,14 @@ const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
         </p>
 
         <div className="overflow-hidden mb-4">
-          <motion.h1
+          <m.h1
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             transition={{ ease: 'linear', duration: 0.3 }}
             className="text-5xl sm:text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/40 pb-2 px-4"
           >
             ROBOLUTION
-          </motion.h1>
+          </m.h1>
         </div>
 
         <p className="text-lg sm:text-xl md:text-3xl text-white/70 mb-10 font-light max-w-3xl leading-relaxed px-4">
@@ -414,7 +414,7 @@ const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
                 </div>
 
                 {message && (
-                  <motion.p
+                  <m.p
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`text-sm mt-4 ${
@@ -422,7 +422,7 @@ const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
                     }`}
                   >
                     {message.text}
-                  </motion.p>
+                  </m.p>
                 )}
 
                 <p className="text-white/40 flex items-center justify-center md:justify-start text-xs md:text-sm mt-6">

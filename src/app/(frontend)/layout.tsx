@@ -4,8 +4,8 @@ import './globals.css'
 import Script from 'next/script'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ClientLayout } from '@/components/ClientLayout'
-import SmoothScroll from '@/components/SmoothScroll'
-import { domAnimation, LazyMotion } from 'framer-motion'
+import { LazyMotion, domAnimation } from 'framer-motion'
+import { ReactLenis } from '@/components/LenisReact'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -73,13 +73,14 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans isolate`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <SmoothScroll />
           <main>
             <ClientLayout>
-              <LazyMotion features={domAnimation}>{children}</LazyMotion>
+              <LazyMotion features={domAnimation}>
+                <ReactLenis root>{children}</ReactLenis>
+              </LazyMotion>
             </ClientLayout>
           </main>
         </ThemeProvider>

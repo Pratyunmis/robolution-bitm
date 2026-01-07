@@ -88,11 +88,11 @@ export const Navbar = () => {
             className="flex items-center gap-2 px-3 py-2 cursor-pointer shrink-0"
           >
             <Image
-              className="object-cover rounded-lg"
+              className="object-cover "
               alt="ROBOLUTION LOGO"
               height={32}
               width={32}
-              src="/logo.jpg"
+              src="/logo.png"
             />
             <span className="font-bold text-white text-sm md:text-base tracking-wide">
               ROBOLUTION

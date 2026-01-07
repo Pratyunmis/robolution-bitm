@@ -1,11 +1,10 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Camera, Sparkles } from 'lucide-react'
-import { useState } from 'react'
 
 interface GalleryImage {
   id: string
@@ -24,27 +23,26 @@ interface GalleryPreviewProps {
 }
 
 export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-
+  // Simplified variants for better performance
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.08,
-        delayChildren: 0.2,
+        staggerChildren: 0.06,
+        delayChildren: 0.1,
       },
     },
   }
 
+  // Lighter item variants - removed scale animation
   const itemVariants = {
-    hidden: { opacity: 0, y: 30, scale: 0.9 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
       transition: {
-        duration: 0.6,
+        duration: 0.5,
         ease: [0.25, 0.46, 0.45, 0.94] as const,
       },
     },
@@ -60,7 +58,7 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
       <div className="max-w-7xl mx-auto relative">
         {/* Enhanced Header */}
         <div className="text-center mb-20">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -73,9 +71,9 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
               <Sparkles className="w-5 h-5 animate-pulse" />
             </div>
             <div className="h-px w-40 mx-auto bg-linear-to-r from-transparent via-white/40 to-transparent" />
-          </motion.div>
+          </m.div>
 
-          <motion.h2
+          <m.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -86,9 +84,9 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
             <span className="bg-linear-to-r from-white via-white to-white/30 bg-clip-text text-transparent">
               Moments
             </span>
-          </motion.h2>
+          </m.h2>
 
-          <motion.p
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -96,11 +94,11 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
             className="text-xl md:text-2xl text-white/60 max-w-3xl mx-auto leading-relaxed"
           >
             A glimpse into our journey of innovation, collaboration, and technological excellence
-          </motion.p>
+          </m.p>
         </div>
 
         {/* Enhanced Gallery Grid with Bento-style Layout */}
-        <motion.div
+        <m.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -115,21 +113,13 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
               : 'aspect-square'
 
             return (
-              <motion.div
+              <m.div
                 key={image.id}
                 variants={itemVariants}
-                onHoverStart={() => setHoveredIndex(index)}
-                onHoverEnd={() => setHoveredIndex(null)}
                 className={`relative ${gridClass} rounded-3xl overflow-hidden bg-white/5 border border-white/10 group cursor-pointer`}
               >
-                {/* Image with enhanced effects */}
-                <motion.div
-                  animate={{
-                    scale: hoveredIndex === index ? 1.1 : 1,
-                  }}
-                  transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="relative w-full h-full"
-                >
+                {/* Image with CSS hover effects */}
+                <div className="relative w-full h-full transition-transform duration-500 ease-out group-hover:scale-110">
                   <Image
                     src={image.image.url}
                     alt={image.image.alt || image.title}
@@ -139,56 +129,36 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
                       isLarge ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 25vw'
                     }
                   />
-                </motion.div>
+                </div>
 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                {/* Category Badge */}
+                {/* Category Badge - CSS only */}
                 {image.category && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{
-                      opacity: hoveredIndex === index ? 1 : 0,
-                      y: hoveredIndex === index ? 0 : -10,
-                    }}
-                    transition={{ duration: 0.3 }}
-                    className="absolute top-4 left-4 z-10"
-                  >
+                  <div className="absolute top-4 left-4 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform -translate-y-2 group-hover:translate-y-0">
                     <span className="px-3 py-1 bg-white/20 backdrop-blur-md border border-white/30 rounded-full text-xs font-semibold text-white uppercase tracking-wider">
                       {image.category}
                     </span>
-                  </motion.div>
+                  </div>
                 )}
 
-                {/* Hover Icon */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  animate={{
-                    opacity: hoveredIndex === index ? 1 : 0,
-                    scale: hoveredIndex === index ? 1 : 0.5,
-                  }}
-                  transition={{ duration: 0.3 }}
-                  className="absolute inset-0 flex items-center justify-center z-10"
-                >
-                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 border border-white/30">
+                {/* Hover Icon - CSS only */}
+                <div className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4 border border-white/30 scale-50 group-hover:scale-100 transition-transform duration-300">
                     <Camera className="w-6 h-6 text-white" />
                   </div>
-                </motion.div>
+                </div>
 
-                {/* Multi-layer Shine Effect */}
-                <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 transform -translate-x-full group-hover:translate-x-full" />
-                <div className="absolute inset-0 bg-linear-to-bl from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 transform translate-x-full group-hover:-translate-x-full delay-100" />
-
-                {/* Border Glow Effect */}
-                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 shadow-[inset_0_0_20px_rgba(255,255,255,0.2)]" />
-              </motion.div>
+                {/* Shine Effect - simplified */}
+                <div className="absolute inset-0 bg-linear-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </m.div>
             )
           })}
-        </motion.div>
+        </m.div>
 
         {/* Enhanced CTA */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -208,7 +178,7 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
           </Link>
 
           {/* Stats */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -216,8 +186,8 @@ export const GalleryPreview: React.FC<GalleryPreviewProps> = ({ images }) => {
             className="mt-8 text-white/40 text-sm"
           >
             <span className="font-semibold">{images.length}+</span> moments captured
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </section>
   )
