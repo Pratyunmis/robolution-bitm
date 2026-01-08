@@ -12,7 +12,13 @@ export const Footer = () => {
       <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-12 mb-12">
         <div className="col-span-1 md:col-span-2">
           <h3 className="text-2xl flex items-center gap-2 font-bold mb-4 tracking-tight">
-            <Image src="/logo.jpg" className='h-10 w-10' height={100} width={100} alt="Robolution Logo" />
+            <Image
+              src="/logo.png"
+              className="h-10 w-10"
+              height={100}
+              width={100}
+              alt="Robolution Logo"
+            />
             ROBOLUTION
           </h3>
           <p className="text-white/50 max-w-sm mb-6 leading-relaxed">
