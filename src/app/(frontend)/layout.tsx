@@ -22,8 +22,8 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.robolutionbitm.in'),
   title: {
-    default: 'Robolution | BIT Mesra | Team Pratyumnis',
-    template: '%s | Robolution | BIT Mesra | Team Pratyumnis',
+    default: 'Robolution - Official Robotics Club of BIT Mesra',
+    template: '%s Robolution - Official Robotics Club of BIT Mesra',
   },
   description:
     'Robolution is the official robotics and innovation club of BIT Mesra, also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     canonical: 'https://www.robolutionbitm.in',
   },
   openGraph: {
-    title: 'Robolution | BIT Mesra | Team Pratyumnis - Official Robotics Club',
+    title: 'Robolution - Official Robotics Club of BIT Mesra',
     description:
       'Robolution is the official robotics and innovation club of BIT Mesra, also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
     siteName: 'Robolution - BIT Mesra',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Robolution | BIT Mesra | Team Pratyumnis - Official Robotics Club',
+        alt: 'Robolution - Official Robotics Club of BIT Mesra | Team Pratyumnis',
       },
     ],
     locale: 'en_IN',
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     site: '@robolutionbitm',
-    title: 'Robolution | BIT Mesra | Team Pratyumnis',
+    title: 'Robolution - Official Robotics Club of BIT Mesra',
     description:
       'Official robotics club of BIT Mesra. Building robots. Competing hard. Learning engineering the real way.',
     images: ['/og-image.png'],

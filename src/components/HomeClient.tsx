@@ -15,6 +15,9 @@ import {
   PlusIcon,
   Send,
   LockIcon,
+  Award,
+  Medal,
+  Star,
 } from 'lucide-react'
 import Link from 'next/link'
 import CountUp from '@/components/CountUp'
@@ -240,6 +243,127 @@ const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
                   Building industry-grade robots, participating in ABU ROBOCON, and pioneering new
                   tech solutions.
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Achievements Section */}
+      <section className="relative z-10 py-32 px-4 bg-black/50 backdrop-blur-lg border-y border-white/5">
+        <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-white/5 blur-[150px] rounded-full" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 blur-[150px] rounded-full" />
+
+        <div className="max-w-6xl mx-auto relative">
+          <div className="text-center mb-16">
+            <div className="inline-block mb-6">
+              <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-white/50 font-semibold border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
+                Our Achievements
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-6xl font-bold mb-6">
+              <span className="bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/40">
+                Hall of Fame
+              </span>
+            </h2>
+            <p className="text-lg md:text-xl text-white/50 max-w-3xl mx-auto">
+              Proudly representing BIT Mesra at national and international robotics competitions
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Achievement 1 */}
+            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
+              <div className="relative flex gap-6">
+                <div className="shrink-0">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
+                    <Trophy className="w-8 h-8 text-black" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
+                    Robocon 2013
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
+                    Best Rookie Team
+                  </h3>
+                  <p className="text-white/60 leading-relaxed">
+                    Recognized as the best newcomer team in our first year of participation at ABU
+                    Robocon
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Achievement 2 */}
+            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
+              <div className="relative flex gap-6">
+                <div className="shrink-0">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
+                    <Award className="w-8 h-8 text-black" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
+                    Robocon 2015
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
+                    ₹50,000 Award by MathWorks
+                  </h3>
+                  <p className="text-white/60 leading-relaxed">
+                    Won the prestigious prize for best use of MathWorks tools in robot development
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Achievement 3 */}
+            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
+              <div className="relative flex gap-6">
+                <div className="shrink-0">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
+                    <Medal className="w-8 h-8 text-black" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
+                    Robocon 2015
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
+                    Best Non-Quarterfinalist Team
+                  </h3>
+                  <p className="text-white/60 leading-relaxed">
+                    Awarded for exceptional performance and innovation among non-quarterfinalist
+                    teams
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Achievement 4 */}
+            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
+              <div className="relative flex gap-6">
+                <div className="shrink-0">
+                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
+                    <Star className="w-8 h-8 text-black" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
+                    Techfest IIT Bombay 2015
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
+                    2nd Prize in Pixelate
+                  </h3>
+                  <p className="text-white/60 leading-relaxed">
+                    Secured second place in Pixelate, an image processing robotics event at IIT
+                    Bombay&apos;s Techfest
+                  </p>
+                </div>
               </div>
             </div>
           </div>
