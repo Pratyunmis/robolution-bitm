@@ -4,6 +4,22 @@ import DarkVeil from '@/components/DarkVeil'
 import { renderLexical } from '@/lib/lexicalToHtml'
 import { notFound } from 'next/navigation'
 import AboutPageClient from './page.client'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'About Us',
+  description:
+    'Learn about Robolution - the official robotics and innovation club of BIT Mesra (Team Pratyumnis). Discover our mission, vision, and journey in robotics.',
+  alternates: {
+    canonical: 'https://www.robolutionbitm.in/about',
+  },
+  openGraph: {
+    title: 'About Us | Robolution | BIT Mesra',
+    description:
+      'Learn about Robolution - the official robotics and innovation club of BIT Mesra (Team Pratyumnis). Discover our mission, vision, and journey in robotics.',
+    url: 'https://www.robolutionbitm.in/about',
+  },
+}
 
 export const revalidate = 3600
 

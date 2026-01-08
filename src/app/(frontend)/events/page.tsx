@@ -1,6 +1,22 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import EventsPageClient from './page.client'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Events',
+  description:
+    'Explore robotics events, workshops, and competitions organized by Robolution at BIT Mesra. Stay updated with our latest tech events and activities.',
+  alternates: {
+    canonical: 'https://www.robolutionbitm.in/events',
+  },
+  openGraph: {
+    title: 'Events | Robolution | BIT Mesra',
+    description:
+      'Explore robotics events, workshops, and competitions organized by Robolution at BIT Mesra. Stay updated with our latest tech events and activities.',
+    url: 'https://www.robolutionbitm.in/events',
+  },
+}
 
 export const revalidate = 3600
 

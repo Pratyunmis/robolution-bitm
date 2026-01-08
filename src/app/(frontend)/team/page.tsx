@@ -3,6 +3,22 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import TeamPageClient from './TeamPageClient'
 import type { TeamMember } from '@/payload-types'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Our Team',
+  description:
+    'Meet the passionate team members of Robolution - Team Pratyumnis at BIT Mesra. Our talented engineers and robotics enthusiasts driving innovation.',
+  alternates: {
+    canonical: 'https://www.robolutionbitm.in/team',
+  },
+  openGraph: {
+    title: 'Our Team | Robolution | BIT Mesra',
+    description:
+      'Meet the passionate team members of Robolution - Team Pratyumnis at BIT Mesra. Our talented engineers and robotics enthusiasts driving innovation.',
+    url: 'https://www.robolutionbitm.in/team',
+  },
+}
 
 export const revalidate = 60 // Revalidate every 60 seconds
 

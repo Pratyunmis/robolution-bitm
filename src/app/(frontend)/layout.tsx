@@ -20,12 +20,13 @@ const spaceGrotesk = Space_Grotesk({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://www.robolutionbitm.in'),
   title: {
     default: 'Robolution | BIT Mesra | Team Pratyumnis',
     template: '%s | Robolution | BIT Mesra | Team Pratyumnis',
   },
   description:
-    'Robolution is the official robotics and innovation club of BIT Mesra. also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
+    'Robolution is the official robotics and innovation club of BIT Mesra, also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
   keywords: [
     'Robolution',
     'BIT Mesra',
@@ -36,20 +37,31 @@ export const metadata: Metadata = {
     'Student Robotics',
     'BIT Mesra Robotics',
     'Tech Club',
+    'Robolution BIT Mesra',
+    'BIT Mesra Robotics Club',
+    'Pratyumnis',
+    'Ranchi Robotics',
+    'Jharkhand Robotics',
+    'College Robotics India',
   ],
   authors: [{ name: 'Robolution | BIT Mesra | Team Pratyumnis' }],
   creator: 'Robolution | BIT Mesra | Team Pratyumnis',
+  publisher: 'Robolution - Team Pratyumnis',
+  alternates: {
+    canonical: 'https://www.robolutionbitm.in',
+  },
   openGraph: {
-    title: 'Robolution | BIT Mesra | Team Pratyumnis',
+    title: 'Robolution | BIT Mesra | Team Pratyumnis - Official Robotics Club',
     description:
-      'Robolution is the official robotics and innovation club of BIT Mesra. also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
-    siteName: 'Robolution',
+      'Robolution is the official robotics and innovation club of BIT Mesra, also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
+    siteName: 'Robolution - BIT Mesra',
+    url: 'https://www.robolutionbitm.in',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Robolution | BIT Mesra | Team Pratyumnis',
+        alt: 'Robolution | BIT Mesra | Team Pratyumnis - Official Robotics Club',
       },
     ],
     locale: 'en_IN',
@@ -57,23 +69,108 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
+    site: '@robolutionbitm',
     title: 'Robolution | BIT Mesra | Team Pratyumnis',
-    description: 'Building robots. Competing hard. Learning engineering the real way.',
+    description:
+      'Official robotics club of BIT Mesra. Building robots. Competing hard. Learning engineering the real way.',
     images: ['/og-image.png'],
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
     shortcut: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
-  // metadataBase: new URL('https://robolution.bitmesra.ac.in'),
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 }
 
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
+  const organizationSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Robolution',
+    alternateName: ['Team Pratyumnis', 'Robolution BIT Mesra', 'BIT Mesra Robotics Club'],
+    url: 'https://www.robolutionbitm.in',
+    logo: 'https://www.robolutionbitm.in/logo.png',
+    image: 'https://www.robolutionbitm.in/og-image.png',
+    description:
+      'Robolution is the official robotics and innovation club of BIT Mesra, also known as Team Pratyumnis. We build robots, compete nationally, and push hands-on engineering through workshops, projects, and tech events.',
+    foundingDate: '2015',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Ranchi',
+      addressRegion: 'Jharkhand',
+      addressCountry: 'IN',
+      postalCode: '835215',
+      streetAddress: 'BIT Mesra, Ranchi',
+    },
+    parentOrganization: {
+      '@type': 'CollegeOrUniversity',
+      name: 'Birla Institute of Technology, Mesra',
+      alternateName: 'BIT Mesra',
+      url: 'https://www.bitmesra.ac.in',
+    },
+    sameAs: [
+      'https://www.instagram.com/robolution.bitm/',
+      'https://www.linkedin.com/company/robolution-bit-mesra/',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'General Inquiry',
+      url: 'https://www.robolutionbitm.in/contact',
+    },
+  }
+
+  const websiteSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Robolution | BIT Mesra | Team Pratyumnis',
+    alternateName: 'Robolution',
+    url: 'https://www.robolutionbitm.in',
+    description:
+      'Official website of Robolution - the robotics and innovation club of BIT Mesra (Team Pratyumnis)',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Robolution',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://www.robolutionbitm.in/logo.png',
+      },
+    },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://www.robolutionbitm.in/?q={search_term_string}',
+      'query-input': 'required name=search_term_string',
+    },
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans isolate`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <main>
