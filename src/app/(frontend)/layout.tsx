@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { ClientLayout } from '@/components/ClientLayout'
 import { LazyMotion, domAnimation } from 'framer-motion'
 import { ReactLenis } from '@/components/LenisReact'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -190,6 +191,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
              gtag('config', 'G-3LKNP3KLNW');
             `}
         </Script>
+        <SpeedInsights />
       </body>
     </html>
   )
