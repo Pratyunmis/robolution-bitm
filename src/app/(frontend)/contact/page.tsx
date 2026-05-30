@@ -1,5 +1,6 @@
 import DarkVeil from '@/components/DarkVeil'
-import { Mail, MapPin, Linkedin, Instagram, Facebook } from 'lucide-react'
+import { Mail, MapPin } from 'lucide-react'
+import { FaLinkedin, FaInstagram, FaFacebook } from 'react-icons/fa'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import ContactForm from './ContactForm'
@@ -45,19 +46,19 @@ export default async function ContactPage() {
 
   const socialLinks = [
     {
-      icon: Linkedin,
+      icon: FaLinkedin,
       name: 'LinkedIn',
       link: 'https://www.linkedin.com/company/robolution-bit-mesra',
       color: 'hover:bg-blue-500/20 hover:border-blue-500/50',
     },
     {
-      icon: Facebook,
+      icon: FaFacebook,
       name: 'Facebook',
       link: 'https://www.facebook.com/TeamRobolution',
       color: 'hover:bg-purple-500/20 hover:border-purple-500/50',
     },
     {
-      icon: Instagram,
+      icon: FaInstagram,
       name: 'Instagram',
       link: 'https://instagram.com/robolution.bitm',
       color: 'hover:bg-pink-500/20 hover:border-pink-500/50',

@@ -2,7 +2,8 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone } from 'lucide-react'
+import { Mail, MapPin, Phone } from 'lucide-react'
+import { FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa'
 import { Separator } from '@/components/ui/separator'
 import Image from 'next/image'
 
@@ -28,15 +29,15 @@ export const Footer = () => {
           <div className="flex gap-4 mb-8">
             <SocialLink
               href="https://www.facebook.com/TeamRobolution"
-              icon={<Facebook className="w-5 h-5" />}
+              icon={<FaFacebook className="w-5 h-5" />}
             />
             <SocialLink
               href="https://www.instagram.com/robolution.bitm/"
-              icon={<Instagram className="w-5 h-5" />}
+              icon={<FaInstagram className="w-5 h-5" />}
             />
             <SocialLink
               href="https://www.linkedin.com/company/robolution-bit-mesra"
-              icon={<Linkedin className="w-5 h-5" />}
+              icon={<FaLinkedin className="w-5 h-5" />}
             />
           </div>
         </div>

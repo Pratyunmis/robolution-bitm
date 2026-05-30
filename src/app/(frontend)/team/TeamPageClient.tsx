@@ -32,6 +32,8 @@ interface TeamPageClientProps {
 }
 
 const MemberCard = ({ member, className }: { member: Member; className?: string }) => {
+  const [isLoaded, setIsLoaded] = React.useState(false)
+
   if (!member) return null
 
   // Helper to determine image source
@@ -43,19 +45,30 @@ const MemberCard = ({ member, className }: { member: Member; className?: string 
   return (
     <Card
       className={cn(
-        'group relative flex flex-col items-center py-6 md:m-2 w-full max-w-xs sm:max-w-md md:max-w-[350px] h-80 transform transition-all duration-300 hover:scale-[1.02] hover:bg-white/10',
+        'group relative flex flex-col items-center py-6 md:m-2 w-full max-w-xs sm:max-w-md md:max-w-87.5 h-80 transform transition-all duration-300 hover:scale-[1.02] hover:bg-white/10',
         className,
       )}
     >
       <CardContent className="flex flex-col items-center">
-        <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 mb-4">
+        <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 mb-4 overflow-hidden rounded-full">
           {imageSrc ? (
-            <Image
-              src={imageSrc}
-              alt={member.name}
-              fill
-              className="rounded-full border-2 border-white/20 shadow-lg object-cover scale-95 group-hover:scale-100 transition-transform duration-300"
-            />
+            <>
+              {/* Shimmer loading mask */}
+              {!isLoaded && (
+                <div className="absolute inset-0 rounded-full border-2 border-white/20 shimmer z-10" />
+              )}
+              <Image
+                src={imageSrc}
+                alt={member.name}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className={cn(
+                  'rounded-full border-2 border-white/20 shadow-lg object-cover scale-95 group-hover:scale-100 transition-all duration-500',
+                  isLoaded ? 'opacity-100 blur-0 scale-95' : 'opacity-0 blur-md scale-90',
+                )}
+                onLoad={() => setIsLoaded(true)}
+              />
+            </>
           ) : (
             <div className="w-full h-full rounded-full border-2 border-white/20 shadow-lg bg-gray-800 flex items-center justify-center text-3xl sm:text-4xl font-bold text-white/20">
               {member.name.charAt(0)}

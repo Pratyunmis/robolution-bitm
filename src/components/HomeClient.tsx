@@ -11,7 +11,6 @@ import {
   Code2,
   Cpu,
   Mail,
-  Linkedin,
   PlusIcon,
   Send,
   LockIcon,
@@ -19,6 +18,7 @@ import {
   Medal,
   Star,
 } from 'lucide-react'
+import { FaLinkedin } from 'react-icons/fa'
 import Link from 'next/link'
 import CountUp from '@/components/CountUp'
 import { m } from 'framer-motion'
@@ -481,7 +481,7 @@ const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
                 variant="outline"
                 className="gap-3 border-white/30 bg-white/5 text-white shadow-md shadow-white/5 hover:bg-white/10 hover:border-white/50 hover:shadow-lg hover:shadow-white/10 rounded-full px-10 py-7 text-lg font-bold transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-sm"
               >
-                <Linkedin className="w-5 h-5" />
+                <FaLinkedin className="w-5 h-5" />
                 Follow Us
               </Button>
             </Link>
