@@ -49,7 +49,7 @@ const AboutPageClient = ({
       </section>
 
       {/* Main Content (Who Are We) */}
-      <section className="relative z-10 py-20 px-4">
+      <section className="relative z-10 py-10 px-4">
         <div className="max-w-5xl mx-auto">
           <m.div
             initial={{ opacity: 0, y: 20 }}

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
 }
 
-export const revalidate = 3600
+export const revalidate = 1800 // Revalidate every 30 minutes
 
 const AboutPage = async () => {
   const payload = await getPayload({ config })

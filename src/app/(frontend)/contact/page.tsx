@@ -4,7 +4,7 @@ import { getPayload } from 'payload'
 import config from '@payload-config'
 import ContactForm from './ContactForm'
 
-export const revalidate = 3600 // Revalidate every hour
+export const revalidate = 1800 // Revalidate every hour
 
 export default async function ContactPage() {
   const payload = await getPayload({ config })

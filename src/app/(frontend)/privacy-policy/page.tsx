@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { renderLexical } from '@/lib/lexicalToHtml'
 import type { PrivacyPolicy } from '@/payload-types'
 
-export const revalidate = 3600 // doesn't change often
+export const revalidate = 1800 // doesn't change often
 
 const formatDate = (date: string) =>
   new Date(date).toLocaleDateString('en-US', {
