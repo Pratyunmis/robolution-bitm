@@ -392,18 +392,14 @@ export interface TeamMember {
     | 'vice_captain'
     | 'general_secretary'
     | 'joint_secretary'
-    | 'design_head'
-    | 'management_head'
+    | 'design_lead'
     | 'treasurer'
     | 'embedded_head'
     | 'mechanical_head'
-    | 'cad_lead'
-    | 'inventory_coord'
-    | 'inventory_manager'
+    | 'management_lead'
     | 'web_master'
-    | 'workshop_coord'
-    | 'sponsorship_head'
-    | 'executive_member';
+    | 'intelligence_head'
+    | 'public_relations_head';
   year?: ('1' | '2' | '3' | '4') | null;
   image?: (number | null) | Media;
   bio?: string | null;

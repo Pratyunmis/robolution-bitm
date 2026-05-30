@@ -176,100 +176,51 @@ const HeroSection = () => (
 // )
 
 export default function TeamPageClient({ members }: TeamPageClientProps) {
-  // Group members according to the new structure
-  const grouped = {
-    presidents: {
-      president: [] as Member[],
-      vicePresident: [] as Member[],
-      jointPresident: [] as Member[],
-    },
-    captains: {
-      captain: [] as Member[],
-      viceCaptain: [] as Member[],
-    },
-    secretaries: {
-      generalSecretary: [] as Member[],
-      jointSecretary: [] as Member[],
-    },
-    design: [] as Member[],
-    management: [] as Member[],
-    treasurer: [] as Member[],
-    embedded: [] as Member[],
-    mechanical: [] as Member[],
-    cadInventory: {
-      cad: [] as Member[],
-      inventoryCoord: [] as Member[],
-      inventoryManager: [] as Member[],
-    },
-    workshopSponsorship: {
-      webMaster: [] as Member[],
-      workshop: [] as Member[],
-      sponsorship: [] as Member[],
-    },
-    executives: [] as Member[],
-  }
+  // Define categories in the desired hierarchical order
+  const categoriesOrder = [
+    { value: 'president', label: 'President' },
+    { value: 'vice_president', label: 'Vice President' },
+    { value: 'joint_president', label: 'Joint President' },
+    { value: 'captain', label: 'Captain' },
+    { value: 'vice_captain', label: 'Vice Captain' },
+    { value: 'general_secretary', label: 'General Secretary' },
+    { value: 'joint_secretary', label: 'Joint Secretary' },
+    { value: 'design_lead', label: 'Design Lead' },
+    { value: 'treasurer', label: 'Treasurer' },
+    { value: 'embedded_head', label: 'Embedded Head' },
+    { value: 'mechanical_head', label: 'Mechanical Head' },
+    { value: 'management_lead', label: 'Management Lead' },
+    { value: 'web_master', label: 'Web Master' },
+    { value: 'intelligence_head', label: 'Intelligence Head' },
+    { value: 'public_relations_head', label: 'Public Relations Head' },
+  ] as const
 
-  members.forEach((m: Member) => {
-    switch (m.category) {
-      case 'president':
-        grouped.presidents.president.push(m)
-        break
-      case 'vice_president':
-        grouped.presidents.vicePresident.push(m)
-        break
-      case 'joint_president':
-        grouped.presidents.jointPresident.push(m)
-        break
-      case 'captain':
-        grouped.captains.captain.push(m)
-        break
-      case 'vice_captain':
-        grouped.captains.viceCaptain.push(m)
-        break
-      case 'general_secretary':
-        grouped.secretaries.generalSecretary.push(m)
-        break
-      case 'joint_secretary':
-        grouped.secretaries.jointSecretary.push(m)
-        break
-      case 'design_head':
-        grouped.design.push(m)
-        break
-      case 'management_head':
-        grouped.management.push(m)
-        break
-      case 'treasurer':
-        grouped.treasurer.push(m)
-        break
-      case 'embedded_head':
-        grouped.embedded.push(m)
-        break
-      case 'mechanical_head':
-        grouped.mechanical.push(m)
-        break
-      case 'cad_lead':
-        grouped.cadInventory.cad.push(m)
-        break
-      case 'inventory_coord':
-        grouped.cadInventory.inventoryCoord.push(m)
-        break
-      case 'inventory_manager':
-        grouped.cadInventory.inventoryManager.push(m)
-        break
-      case 'web_master':
-        grouped.workshopSponsorship.webMaster.push(m)
-        break
-      case 'workshop_coord':
-        grouped.workshopSponsorship.workshop.push(m)
-        break
-      case 'sponsorship_head':
-        grouped.workshopSponsorship.sponsorship.push(m)
-        break
-      case 'executive_member':
-        grouped.executives.push(m)
-        break
+  // Initialize grouped members
+  const membersByCategory: Record<string, Member[]> = {}
+  categoriesOrder.forEach((cat) => {
+    membersByCategory[cat.value] = []
+  })
+
+  // Group members by category, ignoring any categories not in the list
+  members.forEach((m) => {
+    if (m.category in membersByCategory) {
+      membersByCategory[m.category].push(m)
     }
   })
+
+  // Helpers to check if groups have any members
+  const hasPresidents =
+    membersByCategory['president'].length > 0 ||
+    membersByCategory['vice_president'].length > 0 ||
+    membersByCategory['joint_president'].length > 0
+
+  const hasCaptains =
+    membersByCategory['captain'].length > 0 ||
+    membersByCategory['vice_captain'].length > 0
+
+  const hasSecretaries =
+    membersByCategory['general_secretary'].length > 0 ||
+    membersByCategory['joint_secretary'].length > 0
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white/20 font-sans relative overflow-x-hidden">
@@ -289,119 +240,86 @@ export default function TeamPageClient({ members }: TeamPageClientProps) {
           </div>
         </div>
 
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            PRESIDENTS
-          </h2>
+        {/* PRESIDENTS Section */}
+        {hasPresidents && (
+          <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
+              PRESIDENTS
+            </h2>
+            <div>
+              {/* President - Center */}
+              {renderMemberRow(membersByCategory['president'], 'president')}
 
-          <div>
-            {/* President - Center */}
-            {renderMemberRow(grouped.presidents.president, 'president')}
-
-            {/* Vice President and Joint President - Side by side */}
-            <div className="flex justify-center">
-              {renderMemberRow(
-                [...grouped.presidents.vicePresident, ...grouped.presidents.jointPresident],
-                'vice-president',
-              )}
+              {/* Vice President and Joint President - Side by side */}
+              <div className="flex justify-center">
+                {renderMemberRow(
+                  [...membersByCategory['vice_president'], ...membersByCategory['joint_president']],
+                  'vice-president-joint-president',
+                )}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            CAPTAINS
-          </h2>
+        {/* CAPTAINS Section */}
+        {hasCaptains && (
+          <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
+              CAPTAINS
+            </h2>
+            <div>
+              {/* Captain - Center */}
+              {renderMemberRow(membersByCategory['captain'], 'captain')}
 
-          <div>
-            {/* Captain - Center */}
-            {renderMemberRow(grouped.captains.captain, 'captain')}
-
-            {/* Vice Captains - Side by side */}
-            <div className="flex flex-wrap justify-center gap-6">
-              {renderMemberRow(grouped.captains.viceCaptain, 'vice-captain')}
+              {/* Vice Captains - Side by side */}
+              <div className="flex flex-wrap justify-center gap-6">
+                {renderMemberRow(membersByCategory['vice_captain'], 'vice-captain')}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            SECRETARIES
-          </h2>
+        {/* SECRETARIES Section */}
+        {hasSecretaries && (
+          <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
+              SECRETARIES
+            </h2>
+            <div>
+              {/* General Secretary - Center */}
+              {renderMemberRow(membersByCategory['general_secretary'], 'general-secretary')}
 
-          <div>
-            {/* General Secretary - Center */}
-            {renderMemberRow(grouped.secretaries.generalSecretary, 'general-secretary')}
-
-            {/* Joint Secretaries - Side by side */}
-            <div className="flex flex-wrap justify-center gap-6">
-              {renderMemberRow(grouped.secretaries.jointSecretary, 'joint-secretary')}
+              {/* Joint Secretaries - Side by side */}
+              <div className="flex flex-wrap justify-center gap-6">
+                {renderMemberRow(membersByCategory['joint_secretary'], 'joint-secretary')}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            DESIGN
-          </h2>
-          {renderMemberRow(grouped.design, 'design')}
+        {/* Individual role sections in hierarchy order */}
+        {[
+          { key: 'design_lead', label: 'Design Lead' },
+          { key: 'treasurer', label: 'Treasurer' },
+          { key: 'embedded_head', label: 'Embedded Head' },
+          { key: 'mechanical_head', label: 'Mechanical Head' },
+          { key: 'management_lead', label: 'Management Lead' },
+          { key: 'web_master', label: 'Web Master' },
+          { key: 'intelligence_head', label: 'Intelligence Head' },
+          { key: 'public_relations_head', label: 'Public Relations Head' },
+        ].map(({ key, label }) => {
+          const catMembers = membersByCategory[key]
+          if (!catMembers || catMembers.length === 0) return null
 
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 mt-10 md:mt-16 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            MANAGEMENT
-          </h2>
-          {renderMemberRow(grouped.management, 'management')}
-        </section>
-
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            TREASURER
-          </h2>
-          {renderMemberRow(grouped.treasurer, 'treasurer')}
-
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 mt-10 md:mt-16 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            EMBEDDED LEAD
-          </h2>
-          {renderMemberRow(grouped.embedded, 'embedded')}
-        </section>
-
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            MECHANICAL LEAD
-          </h2>
-          {renderMemberRow(grouped.mechanical, 'mechanical')}
-
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 mt-10 md:mt-16 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            CAD & INVENTORY
-          </h2>
-          <div className="flex flex-wrap justify-center gap-6">
-            {renderMemberRow(grouped.cadInventory.inventoryCoord, 'inventory-coord')}
-            {renderMemberRow(grouped.cadInventory.cad, 'cad-lead')}
-            {renderMemberRow(grouped.cadInventory.inventoryManager, 'inventory-manager')}
-          </div>
-        </section>
-
-        <section className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            WORKSHOP & SPONSORSHIP
-          </h2>
-          <div className="flex flex-wrap justify-center gap-6">
-            {renderMemberRow(
-              [
-                ...grouped.workshopSponsorship.workshop,
-                ...grouped.workshopSponsorship.sponsorship,
-                ...grouped.workshopSponsorship.webMaster,
-              ],
-              'workshop, sponsorship, web-master',
-            )}
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 mt-10 md:mt-16 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
-            EXECUTIVES
-          </h2>
-          {renderMemberRow(grouped.executives, 'executives')}
-        </section>
-
-        {/* <TimelineSection /> */}
+          return (
+            <section key={key} className="my-12 md:my-20 px-4 max-w-7xl mx-auto">
+              <h2 className="text-2xl sm:text-3xl font-bold text-center text-white/90 mb-8 md:mb-12 tracking-wide uppercase border-b border-white/10 pb-3 md:pb-4">
+                {label}
+              </h2>
+              {renderMemberRow(catMembers, key)}
+            </section>
+          )
+        })}
       </div>
     </div>
   )
