@@ -8,8 +8,10 @@ export const Newsletter: CollectionConfig = {
     description: 'Newsletter subscription emails',
   },
   access: {
-    read: () => true,
+    read: ({ req: { user } }) => Boolean(user),
     create: () => true,
+    update: ({ req: { user } }) => Boolean(user),
+    delete: ({ req: { user } }) => Boolean(user),
   },
   fields: [
     {
