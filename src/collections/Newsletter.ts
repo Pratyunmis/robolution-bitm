@@ -8,10 +8,21 @@ export const Newsletter: CollectionConfig = {
     description: 'Newsletter subscription emails',
   },
   access: {
-    read: ({ req: { user } }) => Boolean(user),
-    create: () => true,
-    update: ({ req: { user } }) => Boolean(user),
-    delete: ({ req: { user } }) => Boolean(user),
+    // Only admins can view subscriber emails (PII).
+    // Fallback: users without a role field (pre-migration) are treated as admin.
+    read: ({ req: { user } }) => {
+      if (!user) return false
+      return !user.role || user.role === 'admin'
+    },
+    create: () => true, // Public subscribe form
+    update: ({ req: { user } }) => {
+      if (!user) return false
+      return !user.role || user.role === 'admin'
+    },
+    delete: ({ req: { user } }) => {
+      if (!user) return false
+      return !user.role || user.role === 'admin'
+    },
   },
   fields: [
     {
