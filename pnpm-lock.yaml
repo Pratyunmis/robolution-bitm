@@ -50,9 +50,6 @@ importers:
       cross-env:
         specifier: ^10.1.0
         version: 10.1.0
-      dotenv:
-        specifier: 17.4.2
-        version: 17.4.2
       form-data:
         specifier: ^4.0.5
         version: 4.0.6
@@ -126,6 +123,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: 6.0.2
         version: 6.0.2(vite@8.2.1(@types/node@25.9.5)(esbuild@0.25.12)(jiti@2.7.0)(sass@1.77.4)(tsx@4.21.0))
+      dotenv:
+        specifier: 17.4.2
+        version: 17.4.2
       eslint:
         specifier: ^10.4.1
         version: 10.8.1(jiti@2.7.0)

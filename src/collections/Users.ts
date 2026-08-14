@@ -19,8 +19,8 @@ export const Users: CollectionConfig = {
         { label: 'Admin', value: 'admin' },
       ],
       access: {
-        // Temporarily allow anyone to update roles so the first user can make themselves an admin
-        update: () => true,
+        // Only admins can change roles
+        update: ({ req: { user } }) => user?.role === 'admin',
       },
       admin: {
         position: 'sidebar',

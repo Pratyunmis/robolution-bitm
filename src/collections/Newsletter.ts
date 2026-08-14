@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAdmin } from '../access/roles'
 
 export const Newsletter: CollectionConfig = {
   slug: 'newsletter',
@@ -9,20 +10,10 @@ export const Newsletter: CollectionConfig = {
   },
   access: {
     // Only admins can view subscriber emails (PII).
-    // Fallback: users without a role field (pre-migration) are treated as admin.
-    read: ({ req: { user } }) => {
-      if (!user) return false
-      return !user.role || user.role === 'admin'
-    },
+    read: isAdmin,
     create: () => true, // Public subscribe form
-    update: ({ req: { user } }) => {
-      if (!user) return false
-      return !user.role || user.role === 'admin'
-    },
-    delete: ({ req: { user } }) => {
-      if (!user) return false
-      return !user.role || user.role === 'admin'
-    },
+    update: isAdmin,
+    delete: isAdmin,
   },
   fields: [
     {
