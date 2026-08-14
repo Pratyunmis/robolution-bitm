@@ -28,22 +28,5 @@ export const Users: CollectionConfig = {
       },
     },
   ],
-  hooks: {
-    beforeChange: [
-      async ({ data, operation, req }) => {
-        // Auto-assign admin role to the very first user (initial setup)
-        if (operation === 'create') {
-          const { payload } = req
-          const existingUsers = await payload.find({
-            collection: 'users',
-            limit: 1,
-          })
-          if (existingUsers.totalDocs === 0) {
-            data.role = 'admin'
-          }
-        }
-        return data
-      },
-    ],
-  },
+  // hooks removed
 }
