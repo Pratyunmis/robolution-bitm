@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { m, AnimatePresence } from 'framer-motion'
 import DarkVeil from '@/components/DarkVeil'
 import CountUp from '@/components/CountUp'
@@ -393,6 +394,19 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
                             </span>
                           )}
                         </div>
+
+                        {/* Optional Card Image Thumbnail */}
+                        {item.imageUrl && (
+                          <div className="w-full h-36 bg-white/5 rounded-2xl border border-white/10 overflow-hidden relative mb-4">
+                            <Image
+                              src={item.imageUrl}
+                              alt={item.name}
+                              fill
+                              unoptimized
+                              className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                        )}
 
                         {/* Title & SKU */}
                         <h3 className="text-xl font-bold text-white mb-2 group-hover:text-white transition-colors line-clamp-1">

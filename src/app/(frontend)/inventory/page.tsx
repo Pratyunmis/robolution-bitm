@@ -34,6 +34,7 @@ async function getInventoryData(): Promise<{
     const itemsResult = await payload.find({
       collection: 'inventory-items',
       limit: 200,
+      depth: 2,
       sort: 'name',
     })
 
@@ -44,7 +45,12 @@ async function getInventoryData(): Promise<{
     let outOfStockCount = 0
 
     const items: TransformedInventoryItem[] = itemsResult.docs.map((item: InventoryItem) => {
-      const img = typeof item.image === 'number' ? null : (item.image as Media | null)
+      let imgUrl: string | undefined = undefined
+      if (item.image) {
+        if (typeof item.image === 'object' && 'url' in item.image && item.image.url) {
+          imgUrl = item.image.url
+        }
+      }
       const cat = typeof item.category === 'number' ? null : (item.category as InventoryCategory | null)
 
       const qtyTotal = item.quantityTotal ?? 0
@@ -70,7 +76,7 @@ async function getInventoryData(): Promise<{
           id: cat?.id ? cat.id.toString() : (typeof item.category === 'number' ? item.category.toString() : ''),
           name: cat?.name || 'Uncategorized',
         },
-        imageUrl: img?.url || undefined,
+        imageUrl: imgUrl,
         location: item.location || undefined,
         quantityTotal: qtyTotal,
         quantityAvailable: qtyAvailable,
