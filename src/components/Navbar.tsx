@@ -14,6 +14,7 @@ const navItems = [
   { name: 'About', link: '/about' },
   { name: 'Team', link: '/team' },
   { name: 'Events', link: '/events' },
+  { name: 'Inventory', link: '/inventory' },
   { name: 'Gallery', link: '/gallery' },
   { name: 'Updates', link: '/announcements' },
   { name: 'Contact', link: '/contact' },
