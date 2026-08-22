@@ -1,6 +1,6 @@
 import type { InventoryItem } from '../../payload-types'
 
-export type TransactionType = 'issue' | 'return' | 'adjust' | 'restock'
+export type TransactionType = 'issue' | 'return' | 'adjust' | 'restock' | 'damage'
 
 export interface QuantityResult {
   quantityTotal: number
@@ -48,6 +48,15 @@ export const validateTransaction = (
     }
   }
 
+  if (type === 'damage') {
+    if (quantity > available) {
+      return {
+        valid: false,
+        error: `Cannot write off ${quantity} units as damaged. Only ${available} available.`,
+      }
+    }
+  }
+
   return { valid: true }
 }
 
@@ -84,6 +93,10 @@ export const applyTransaction = (
     case 'restock':
       total += quantity
       available += quantity
+      break
+    case 'damage':
+      total -= quantity
+      available -= quantity
       break
     case 'adjust':
       // Adjust directly sets the total. 

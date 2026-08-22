@@ -84,5 +84,32 @@ describe('Inventory Quantity Logic', () => {
       expect(result.quantityAvailable).toBe(5)
       expect(result.status).toBe('active')
     })
+
+    it('applies damage correctly (decreases total and available)', () => {
+      const result = applyTransaction(baseItem, 'damage', 3)
+      expect(result.quantityTotal).toBe(7)
+      expect(result.quantityAvailable).toBe(7)
+      expect(result.quantityIssued).toBe(0)
+      expect(result.status).toBe('active')
+    })
+
+    it('auto-sets status to out-of-stock when all units are damaged', () => {
+      const result = applyTransaction(baseItem, 'damage', 10)
+      expect(result.quantityTotal).toBe(0)
+      expect(result.quantityAvailable).toBe(0)
+      expect(result.status).toBe('out-of-stock')
+    })
+  })
+
+  describe('damage validation', () => {
+    it('fails to damage more than available', () => {
+      const result = validateTransaction(baseItem, 'damage', 15)
+      expect(result.valid).toBe(false)
+      expect(result.error).toMatch(/Cannot write off 15 units/)
+    })
+
+    it('allows valid damage transaction', () => {
+      expect(validateTransaction(baseItem, 'damage', 5).valid).toBe(true)
+    })
   })
 })

@@ -37,6 +37,7 @@ export const InventoryTransactions: CollectionConfig = {
         { label: 'Return (Checkin)', value: 'return' },
         { label: 'Restock (New purchase)', value: 'restock' },
         { label: 'Adjust (Correction)', value: 'adjust' },
+        { label: 'Damage (Write-off)', value: 'damage' },
       ],
       admin: {
         description: 'Type of transaction',
@@ -95,6 +96,10 @@ export const InventoryTransactions: CollectionConfig = {
           // Cross-field validation: Adjust requires reason
           if (data.type === 'adjust' && !data.reason) {
             throw new APIError('A reason is required when adjusting inventory.', 400)
+          }
+          // Cross-field validation: Damage requires reason
+          if (data.type === 'damage' && !data.reason) {
+            throw new APIError('A reason is required when reporting damaged inventory.', 400)
           }
           // Cross-field validation: Issue requires issuedTo
           if (data.type === 'issue' && !data.issuedTo) {

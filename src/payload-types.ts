@@ -768,7 +768,7 @@ export interface InventoryTransaction {
   /**
    * Type of transaction
    */
-  type: 'issue' | 'return' | 'restock' | 'adjust';
+  type: 'issue' | 'return' | 'restock' | 'adjust' | 'damage';
   /**
    * Number of units (must be positive)
    */
