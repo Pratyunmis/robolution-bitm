@@ -2,14 +2,14 @@
 
 services:
   payload:
-    image: node:18-alpine
+    image: node:20-alpine
     ports:
       - '3000:3000'
     volumes:
       - .:/home/node/app
       - node_modules:/home/node/app/node_modules
     working_dir: /home/node/app/
-    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev"
+    command: sh -c "corepack enable && corepack prepare pnpm@10 --activate && pnpm install && pnpm dev"
     depends_on:
       - postgres
     env_file:
@@ -18,7 +18,7 @@ services:
   # Ensure your DATABASE_URI uses 'postgres' as the hostname ie. postgres://user:pass@postgres:5432/my-db-name
   postgres:
     restart: always
-    image: postgres:latest
+    image: postgres:16-alpine
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

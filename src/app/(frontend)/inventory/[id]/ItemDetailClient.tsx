@@ -3,9 +3,11 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { m } from 'framer-motion'
+import { m, AnimatePresence } from 'framer-motion'
 import DarkVeil from '@/components/DarkVeil'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   ArrowLeft,
   MapPin,
@@ -25,6 +27,8 @@ import {
   FileText,
   RotateCcw,
   Boxes,
+  X,
+  Loader2,
 } from 'lucide-react'
 
 export interface DetailedInventoryItem {
@@ -68,12 +72,25 @@ interface ItemDetailClientProps {
   descriptionHtml: string
 }
 
+type DialogType = 'issue' | 'return' | 'restock' | 'damage' | null
+
 export default function ItemDetailClient({
-  item,
-  transactions,
+  item: initialItem,
+  transactions: initialTransactions,
   descriptionHtml,
 }: ItemDetailClientProps) {
+  const [item, setItem] = useState<DetailedInventoryItem>(initialItem)
+  const [transactions, setTransactions] = useState<TransformedTransaction[]>(initialTransactions)
   const [copiedSku, setCopiedSku] = useState(false)
+
+  // Dialog State
+  const [activeDialog, setActiveDialog] = useState<DialogType>(null)
+  const [formQuantity, setFormQuantity] = useState<number>(1)
+  const [formRecipient, setFormRecipient] = useState<string>('')
+  const [formReason, setFormReason] = useState<string>('')
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const copySku = () => {
     if (item.sku) {
@@ -89,6 +106,81 @@ export default function ItemDetailClient({
       : 0
   const isOutOfStock = item.quantityAvailable === 0
   const isLowStock = !isOutOfStock && item.quantityAvailable <= item.minimumStock
+
+  const openDialog = (type: DialogType) => {
+    setActiveDialog(type)
+    setFormQuantity(1)
+    setFormRecipient('')
+    setFormReason('')
+    setErrorMsg(null)
+  }
+
+  const closeDialog = () => {
+    setActiveDialog(null)
+    setErrorMsg(null)
+  }
+
+  const handleTransactionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!activeDialog) return
+
+    setIsSubmitting(true)
+    setErrorMsg(null)
+
+    try {
+      const response = await fetch('/api/inventory/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          itemId: item.id,
+          type: activeDialog,
+          quantity: formQuantity,
+          issuedToEmail: formRecipient || undefined,
+          reason: formReason || undefined,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to submit transaction')
+      }
+
+      // Update item quantities
+      if (data.updatedItem) {
+        setItem((prev) => ({
+          ...prev,
+          quantityTotal: data.updatedItem.quantityTotal ?? prev.quantityTotal,
+          quantityAvailable: data.updatedItem.quantityAvailable ?? prev.quantityAvailable,
+          quantityIssued: data.updatedItem.quantityIssued ?? prev.quantityIssued,
+          status: data.updatedItem.status ?? prev.status,
+        }))
+      }
+
+      // Add to transaction timeline
+      if (data.transaction) {
+        const newTx: TransformedTransaction = {
+          id: data.transaction.id.toString(),
+          type: activeDialog,
+          quantity: formQuantity,
+          reason: formReason || undefined,
+          timestamp: new Date().toISOString(),
+          issuedTo: formRecipient ? { id: '', email: formRecipient } : undefined,
+        }
+        setTransactions((prev) => [newTx, ...prev])
+      }
+
+      setSuccessMsg(`Successfully processed ${activeDialog} of ${formQuantity} unit(s)!`)
+      setTimeout(() => setSuccessMsg(null), 4000)
+      closeDialog()
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Transaction error occurred')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const getTransactionBadge = (type: TransformedTransaction['type']) => {
     switch (type) {
@@ -147,6 +239,21 @@ export default function ItemDetailClient({
         <DarkVeil />
       </div>
 
+      {/* Success Notification Banner */}
+      <AnimatePresence>
+        {successMsg && (
+          <m.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-500/90 text-white px-6 py-3 rounded-full backdrop-blur-xl border border-emerald-400/40 shadow-2xl flex items-center gap-2 font-medium text-sm"
+          >
+            <CheckCircle2 className="w-5 h-5" />
+            <span>{successMsg}</span>
+          </m.div>
+        )}
+      </AnimatePresence>
+
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Navigation & Breadcrumbs */}
         <div className="flex flex-wrap items-center justify-between gap-4 py-6 border-b border-white/10 mb-8">
@@ -159,7 +266,9 @@ export default function ItemDetailClient({
           </Link>
 
           <div className="flex items-center gap-2 text-xs md:text-sm text-white/40 font-mono">
-            <span>Inventory</span>
+            <Link href="/inventory" className="hover:text-white/70 transition-colors">
+              Inventory
+            </Link>
             <span>/</span>
             <span className="text-white/60">{item.category.name}</span>
             <span>/</span>
@@ -270,7 +379,7 @@ export default function ItemDetailClient({
               </div>
             </m.div>
 
-            {/* Actions Panel */}
+            {/* Actions Panel with Direct Modal Dialog Triggers */}
             <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -281,34 +390,55 @@ export default function ItemDetailClient({
                 Quick Actions
               </h3>
 
-              <Link href={`/admin/collections/inventory-transactions/create`} className="block">
-                <Button
-                  disabled={isOutOfStock}
-                  className="w-full rounded-2xl py-6 font-bold text-base bg-white text-black hover:bg-gray-100 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none"
-                >
-                  <Zap className="w-5 h-5 fill-current" />
-                  <span>{isOutOfStock ? 'Item Out of Stock' : 'Request Checkout'}</span>
-                </Button>
-              </Link>
+              {/* Checkout Trigger */}
+              <Button
+                onClick={() => openDialog('issue')}
+                disabled={isOutOfStock}
+                className="w-full rounded-2xl py-6 font-bold text-base bg-white text-black hover:bg-gray-100 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
+                <Zap className="w-5 h-5 fill-current" />
+                <span>{isOutOfStock ? 'Item Out of Stock' : 'Request Checkout'}</span>
+              </Button>
 
+              {/* Return Trigger */}
               {item.quantityIssued > 0 && (
-                <Link href={`/admin/collections/inventory-transactions/create`} className="block">
-                  <Button
-                    variant="outline"
-                    className="w-full rounded-2xl py-6 font-semibold text-sm bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all flex items-center justify-center gap-2"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Return Checkouts ({item.quantityIssued} in use)</span>
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => openDialog('return')}
+                  variant="outline"
+                  className="w-full rounded-2xl py-6 font-semibold text-sm bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Return Units ({item.quantityIssued} currently issued)</span>
+                </Button>
               )}
+
+              {/* Restock & Damage Actions */}
+              <div className="grid grid-cols-2 gap-3 pt-2">
+                <Button
+                  onClick={() => openDialog('restock')}
+                  variant="outline"
+                  className="rounded-xl py-3 text-xs bg-white/5 border-white/10 text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <PlusCircle className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Restock</span>
+                </Button>
+
+                <Button
+                  onClick={() => openDialog('damage')}
+                  variant="outline"
+                  className="rounded-xl py-3 text-xs bg-white/5 border-white/10 text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Report Damage</span>
+                </Button>
+              </div>
 
               <div className="pt-2">
                 <Link
                   href={`/admin/collections/inventory-items/${item.id}`}
                   className="text-xs text-center block text-white/40 hover:text-white/80 transition-colors underline underline-offset-4"
                 >
-                  Edit item in Admin Panel →
+                  Edit full item details in Admin Panel →
                 </Link>
               </div>
             </m.div>
@@ -487,7 +617,7 @@ export default function ItemDetailClient({
                               </span>
                             </div>
 
-                            {/* Additional metadata (recipient, reason, performer) */}
+                            {/* Additional metadata */}
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-white/50 mt-1">
                               {tx.issuedTo && (
                                 <span className="flex items-center gap-1 text-white/70">
@@ -522,6 +652,156 @@ export default function ItemDetailClient({
           </div>
         </div>
       </div>
+
+      {/* Modal Dialog for Checkout, Return, Restock, Damage */}
+      <AnimatePresence>
+        {activeDialog && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <m.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeDialog}
+              className="fixed inset-0 bg-black/80 backdrop-blur-md"
+            />
+
+            {/* Modal Card */}
+            <m.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative z-10 w-full max-w-md bg-black/90 border border-white/20 rounded-3xl p-6 sm:p-8 backdrop-blur-2xl shadow-2xl space-y-6"
+            >
+              {/* Close Button */}
+              <button
+                onClick={closeDialog}
+                className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div>
+                <h3 className="text-2xl font-bold text-white capitalize">
+                  {activeDialog === 'issue'
+                    ? 'Request Checkout'
+                    : activeDialog === 'return'
+                      ? 'Return Components'
+                      : activeDialog === 'restock'
+                        ? 'Restock Inventory'
+                        : 'Report Damaged Units'}
+                </h3>
+                <p className="text-xs text-white/60 mt-1">
+                  Item: <strong className="text-white">{item.name}</strong>
+                  {activeDialog === 'issue' && ` (${item.quantityAvailable} available)`}
+                  {activeDialog === 'return' && ` (${item.quantityIssued} currently issued)`}
+                </p>
+              </div>
+
+              {/* Error Alert inside Modal */}
+              {errorMsg && (
+                <div className="bg-rose-500/20 border border-rose-500/40 rounded-xl p-3 text-rose-200 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMsg}</span>
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleTransactionSubmit} className="space-y-4">
+                {/* Quantity Field */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                    Quantity
+                  </label>
+                  <Input
+                    type="number"
+                    min={1}
+                    max={
+                      activeDialog === 'issue'
+                        ? item.quantityAvailable
+                        : activeDialog === 'return'
+                          ? item.quantityIssued
+                          : 999
+                    }
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(parseInt(e.target.value) || 1)}
+                    required
+                    className="bg-white/5 border-white/15 text-white py-5 rounded-xl font-bold text-base focus:border-white"
+                  />
+                </div>
+
+                {/* Recipient Email for Checkout */}
+                {activeDialog === 'issue' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                      Recipient Member Email (Optional)
+                    </label>
+                    <Input
+                      type="email"
+                      placeholder="e.g. member@bitmesra.ac.in (defaults to you)"
+                      value={formRecipient}
+                      onChange={(e) => setFormRecipient(e.target.value)}
+                      className="bg-white/5 border-white/15 text-white py-5 rounded-xl text-sm placeholder:text-white/30"
+                    />
+                  </div>
+                )}
+
+                {/* Notes / Purpose */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-white/70">
+                    {activeDialog === 'damage' ? 'Damage Reason (Required)' : 'Project Name / Purpose'}
+                  </label>
+                  <Textarea
+                    placeholder={
+                      activeDialog === 'issue'
+                        ? 'e.g. ABU Robocon chassis prototype'
+                        : activeDialog === 'return'
+                          ? 'e.g. Completed testing, returned in working condition'
+                          : activeDialog === 'damage'
+                            ? 'e.g. Pin 4 snapped during soldering'
+                            : 'e.g. Bulk order from Robu.in'
+                    }
+                    value={formReason}
+                    onChange={(e) => setFormReason(e.target.value)}
+                    required={activeDialog === 'damage'}
+                    className="bg-white/5 border-white/15 text-white rounded-xl text-sm placeholder:text-white/30 min-h-[80px]"
+                  />
+                </div>
+
+                {/* Submit Action */}
+                <div className="pt-2 flex items-center justify-end gap-3">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={closeDialog}
+                    className="rounded-xl text-white/60 hover:text-white hover:bg-white/5"
+                  >
+                    Cancel
+                  </Button>
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="rounded-xl bg-white text-black hover:bg-gray-100 font-bold px-6 py-5 cursor-pointer flex items-center gap-2"
+                  >
+                    {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                    <span>
+                      {activeDialog === 'issue'
+                        ? 'Confirm Checkout'
+                        : activeDialog === 'return'
+                          ? 'Confirm Return'
+                          : activeDialog === 'restock'
+                            ? 'Confirm Restock'
+                            : 'Confirm Write-off'}
+                    </span>
+                  </Button>
+                </div>
+              </form>
+            </m.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
