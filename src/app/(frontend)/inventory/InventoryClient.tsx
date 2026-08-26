@@ -26,7 +26,9 @@ import {
   History,
   Download,
   FileSpreadsheet,
+  UploadCloud,
 } from 'lucide-react'
+import ImportModal from '@/components/inventory/ImportModal'
 
 export interface TransformedCategory {
   id: string
@@ -81,6 +83,7 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
+  const [isImportOpen, setIsImportOpen] = useState(false)
 
   // Filter items based on search query, category, and status
   const filteredItems = useMemo(() => {
@@ -186,6 +189,15 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
                 <span>Export Catalog (CSV)</span>
               </Button>
             </a>
+
+            <Button
+              onClick={() => setIsImportOpen(true)}
+              variant="outline"
+              className="rounded-full bg-white/5 border-white/15 text-sky-300 hover:text-white hover:bg-sky-500/20 hover:border-sky-400/40 text-xs sm:text-sm px-5 py-2.5 backdrop-blur-md flex items-center gap-2 cursor-pointer"
+            >
+              <UploadCloud className="w-4 h-4" />
+              <span>Import Batch (CSV)</span>
+            </Button>
           </m.div>
         </section>
 
@@ -511,6 +523,17 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
           )}
         </section>
       </div>
+
+      {/* Bulk CSV Import Modal */}
+      <ImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onSuccess={() => {
+          setTimeout(() => {
+            window.location.reload()
+          }, 1500)
+        }}
+      />
     </div>
   )
 }
