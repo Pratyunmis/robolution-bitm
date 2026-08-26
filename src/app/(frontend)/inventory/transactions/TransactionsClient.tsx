@@ -20,6 +20,7 @@ import {
   Filter,
   History,
   FileSpreadsheet,
+  Download,
 } from 'lucide-react'
 
 export interface TransformedAuditTransaction {
@@ -179,17 +180,29 @@ export default function TransactionsClient({ initialTransactions }: Transactions
         </div>
 
         {/* Hero Section */}
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-4 text-white/60 border border-white/10 px-3.5 py-1.5 rounded-full bg-white/5 backdrop-blur-md">
-            <History className="w-3.5 h-3.5 text-white/80" />
-            <span>Audit Trail &amp; Movement Log</span>
+        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] mb-4 text-white/60 border border-white/10 px-3.5 py-1.5 rounded-full bg-white/5 backdrop-blur-md">
+              <History className="w-3.5 h-3.5 text-white/80" />
+              <span>Audit Trail &amp; Movement Log</span>
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-2">
+              TRANSACTION LOG
+            </h1>
+            <p className="text-sm sm:text-base text-white/60 max-w-xl">
+              Real-time audit history of every component checked out, returned, restocked, or written off in the lab.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white mb-2">
-            TRANSACTION LOG
-          </h1>
-          <p className="text-sm sm:text-base text-white/60 max-w-xl">
-            Real-time audit history of every component checked out, returned, restocked, or written off in the lab.
-          </p>
+
+          <a href="/api/inventory/export?type=transactions" download>
+            <Button
+              variant="outline"
+              className="rounded-full bg-white/5 border-white/15 text-emerald-300 hover:text-white hover:bg-emerald-500/20 hover:border-emerald-400/40 text-xs sm:text-sm px-5 py-2.5 backdrop-blur-md flex items-center gap-2 cursor-pointer shrink-0"
+            >
+              <Download className="w-4 h-4" />
+              <span>Export Audit Log (CSV)</span>
+            </Button>
+          </a>
         </div>
 
         {/* Metric Cards */}

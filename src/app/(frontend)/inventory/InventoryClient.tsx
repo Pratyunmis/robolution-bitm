@@ -24,6 +24,8 @@ import {
   PackageX,
   SlidersHorizontal,
   History,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react'
 
 export interface TransformedCategory {
@@ -163,7 +165,7 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12, duration: 0.4 }}
-            className="flex items-center justify-center gap-3"
+            className="flex flex-wrap items-center justify-center gap-3"
           >
             <Link href="/inventory/transactions">
               <Button
@@ -171,9 +173,19 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
                 className="rounded-full bg-white/5 border-white/15 text-white/80 hover:text-white hover:bg-white/10 hover:border-white/30 text-xs sm:text-sm px-5 py-2.5 backdrop-blur-md flex items-center gap-2 cursor-pointer"
               >
                 <History className="w-4 h-4" />
-                <span>View Transaction Audit Log</span>
+                <span>View Transaction Log</span>
               </Button>
             </Link>
+
+            <a href="/api/inventory/export?type=items" download>
+              <Button
+                variant="outline"
+                className="rounded-full bg-white/5 border-white/15 text-emerald-300 hover:text-white hover:bg-emerald-500/20 hover:border-emerald-400/40 text-xs sm:text-sm px-5 py-2.5 backdrop-blur-md flex items-center gap-2 cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Export Catalog (CSV)</span>
+              </Button>
+            </a>
           </m.div>
         </section>
 
