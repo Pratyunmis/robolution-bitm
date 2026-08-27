@@ -23,6 +23,7 @@ import {
   Download,
 } from 'lucide-react'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
+import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
 
 export interface TransformedAuditTransaction {
   id: string
@@ -66,6 +67,9 @@ export default function TransactionsClient({ initialTransactions }: Transactions
 
   // Smart polling & tab focus revalidation
   useSmartRefresh({ intervalMs: 15000 })
+
+  // Real-time SSE Live Updates
+  useInventoryLiveUpdates()
 
   const stats = useMemo(() => {
     let checkouts = 0

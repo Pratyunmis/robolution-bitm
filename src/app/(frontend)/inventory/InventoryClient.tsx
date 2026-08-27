@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import ImportModal from '@/components/inventory/ImportModal'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
+import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
 
 export interface TransformedCategory {
   id: string
@@ -88,6 +89,9 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
 
   // Smart polling & tab focus revalidation
   useSmartRefresh({ intervalMs: 15000 })
+
+  // Real-time SSE Live Updates
+  useInventoryLiveUpdates()
 
   // Filter items based on search query, category, and status
   const filteredItems = useMemo(() => {

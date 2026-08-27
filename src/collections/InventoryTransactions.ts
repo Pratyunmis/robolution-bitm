@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { isAdmin, isInternOrAbove, isMemberOrAdmin } from '../access/roles'
 import { validateTransaction, applyTransaction } from '../lib/inventory/quantity'
+import { broadcastInventoryUpdate } from '../lib/events/inventoryBus'
 import { APIError } from 'payload'
 
 export const InventoryTransactions: CollectionConfig = {
@@ -139,6 +140,20 @@ export const InventoryTransactions: CollectionConfig = {
           })
         }
         return data
+      },
+    ],
+    afterChange: [
+      ({ doc, operation }) => {
+        if (operation === 'create' && doc) {
+          broadcastInventoryUpdate({
+            type: 'TRANSACTION_CREATED',
+            timestamp: doc.timestamp || new Date().toISOString(),
+            transactionId: doc.id,
+            itemId: typeof doc.item === 'object' ? doc.item?.id : doc.item,
+            actionType: doc.type,
+            quantity: doc.quantity,
+          })
+        }
       },
     ],
   },

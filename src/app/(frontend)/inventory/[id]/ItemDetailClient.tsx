@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { m, AnimatePresence } from 'framer-motion'
 import DarkVeil from '@/components/DarkVeil'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
+import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -95,6 +96,9 @@ export default function ItemDetailClient({
 
   // Smart polling & tab focus revalidation
   useSmartRefresh({ intervalMs: 15000 })
+
+  // Real-time SSE Live Updates
+  useInventoryLiveUpdates()
 
   // Dialog State
   const [activeDialog, setActiveDialog] = useState<DialogType>(null)
