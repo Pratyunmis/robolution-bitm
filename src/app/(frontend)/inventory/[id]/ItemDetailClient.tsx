@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { m, AnimatePresence } from 'framer-motion'
 import DarkVeil from '@/components/DarkVeil'
+import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -82,6 +83,18 @@ export default function ItemDetailClient({
   const [item, setItem] = useState<DetailedInventoryItem>(initialItem)
   const [transactions, setTransactions] = useState<TransformedTransaction[]>(initialTransactions)
   const [copiedSku, setCopiedSku] = useState(false)
+
+  // Sync state when server components refresh in background
+  useEffect(() => {
+    setItem(initialItem)
+  }, [initialItem])
+
+  useEffect(() => {
+    setTransactions(initialTransactions)
+  }, [initialTransactions])
+
+  // Smart polling & tab focus revalidation
+  useSmartRefresh({ intervalMs: 15000 })
 
   // Dialog State
   const [activeDialog, setActiveDialog] = useState<DialogType>(null)

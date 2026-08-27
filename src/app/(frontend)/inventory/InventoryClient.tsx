@@ -29,6 +29,7 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import ImportModal from '@/components/inventory/ImportModal'
+import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 
 export interface TransformedCategory {
   id: string
@@ -84,6 +85,9 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [isImportOpen, setIsImportOpen] = useState(false)
+
+  // Smart polling & tab focus revalidation
+  useSmartRefresh({ intervalMs: 15000 })
 
   // Filter items based on search query, category, and status
   const filteredItems = useMemo(() => {

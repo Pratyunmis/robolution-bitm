@@ -22,6 +22,7 @@ import {
   FileSpreadsheet,
   Download,
 } from 'lucide-react'
+import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 
 export interface TransformedAuditTransaction {
   id: string
@@ -62,6 +63,9 @@ type TypeFilter = (typeof typeFilters)[number]['value']
 export default function TransactionsClient({ initialTransactions }: TransactionsClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<TypeFilter>('all')
+
+  // Smart polling & tab focus revalidation
+  useSmartRefresh({ intervalMs: 15000 })
 
   const stats = useMemo(() => {
     let checkouts = 0
