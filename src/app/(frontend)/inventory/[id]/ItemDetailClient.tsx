@@ -7,6 +7,7 @@ import { m, AnimatePresence } from 'framer-motion'
 import DarkVeil from '@/components/DarkVeil'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
+import LiveStatusBadge from '@/components/inventory/LiveStatusBadge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -98,7 +99,7 @@ export default function ItemDetailClient({
   useSmartRefresh({ intervalMs: 15000 })
 
   // Real-time SSE Live Updates
-  useInventoryLiveUpdates()
+  const { status: liveStatus } = useInventoryLiveUpdates()
 
   // Dialog State
   const [activeDialog, setActiveDialog] = useState<DialogType>(null)
@@ -819,6 +820,9 @@ export default function ItemDetailClient({
           </div>
         )}
       </AnimatePresence>
+
+      {/* Floating Bottom-Left Real-time Connection Indicator */}
+      <LiveStatusBadge status={liveStatus} />
     </div>
   )
 }

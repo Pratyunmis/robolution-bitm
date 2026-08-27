@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
+import LiveStatusBadge from '@/components/inventory/LiveStatusBadge'
 
 export interface TransformedAuditTransaction {
   id: string
@@ -69,7 +70,7 @@ export default function TransactionsClient({ initialTransactions }: Transactions
   useSmartRefresh({ intervalMs: 15000 })
 
   // Real-time SSE Live Updates
-  useInventoryLiveUpdates()
+  const { status: liveStatus } = useInventoryLiveUpdates()
 
   const stats = useMemo(() => {
     let checkouts = 0
@@ -394,6 +395,9 @@ export default function TransactionsClient({ initialTransactions }: Transactions
           </div>
         )}
       </div>
+
+      {/* Floating Bottom-Left Real-time Connection Indicator */}
+      <LiveStatusBadge status={liveStatus} />
     </div>
   )
 }

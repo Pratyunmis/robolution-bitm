@@ -29,6 +29,7 @@ import {
   UploadCloud,
 } from 'lucide-react'
 import ImportModal from '@/components/inventory/ImportModal'
+import LiveStatusBadge from '@/components/inventory/LiveStatusBadge'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
 
@@ -91,7 +92,7 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
   useSmartRefresh({ intervalMs: 15000 })
 
   // Real-time SSE Live Updates
-  useInventoryLiveUpdates()
+  const { status: liveStatus } = useInventoryLiveUpdates()
 
   // Filter items based on search query, category, and status
   const filteredItems = useMemo(() => {
@@ -102,14 +103,13 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
       }
 
       // Status filter
-      if (statusFilter === 'in-stock' && item.quantityAvailable <= 0) {
+      if (statusFilter === 'in-stock' && (item.quantityAvailable === 0 || item.status === 'out-of-stock')) {
         return false
       }
-      if (statusFilter === 'low-stock') {
-        const isLow = item.quantityAvailable > 0 && item.quantityAvailable <= item.minimumStock
-        if (!isLow) return false
+      if (statusFilter === 'out-of-stock' && item.quantityAvailable > 0 && item.status !== 'out-of-stock') {
+        return false
       }
-      if (statusFilter === 'out-of-stock' && item.quantityAvailable > 0) {
+      if (statusFilter === 'low-stock' && (item.quantityAvailable > item.minimumStock || item.quantityAvailable === 0)) {
         return false
       }
 
@@ -542,6 +542,9 @@ export default function InventoryClient({ initialItems, categories, stats }: Inv
           }, 1500)
         }}
       />
+
+      {/* Floating Bottom-Left Real-time Connection Indicator */}
+      <LiveStatusBadge status={liveStatus} />
     </div>
   )
 }
