@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/providers/AuthContext'
 
 // Define nav items
 const navItems = [
@@ -19,8 +20,9 @@ const navItems = [
   { name: 'Contact', link: '/contact' },
 ]
 
-export const Navbar = ({ user }: { user?: any }) => {
+export const Navbar = () => {
   const pathname = usePathname()
+  const { user } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
