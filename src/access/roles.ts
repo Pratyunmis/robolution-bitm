@@ -23,10 +23,10 @@ export const isMemberOrAdmin: Access = ({ req: { user } }) => {
 }
 
 /**
- * Returns true if the user is authenticated (all logged in users have at least 'intern' role).
+ * Returns true if the user is authenticated (all logged in users have at least 'intern' role, except 'visitor').
  */
 export const isInternOrAbove: Access = ({ req: { user } }) => {
-  return Boolean(user)
+  return Boolean(user) && user?.role !== 'visitor'
 }
 
 /**

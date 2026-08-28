@@ -12,8 +12,9 @@ export const Users: CollectionConfig = {
       name: 'role',
       type: 'select',
       required: true,
-      defaultValue: 'intern',
+      defaultValue: 'visitor',
       options: [
+        { label: 'Visitor', value: 'visitor' },
         { label: 'Intern', value: 'intern' },
         { label: 'Member', value: 'member' },
         { label: 'Admin', value: 'admin' },

@@ -8,6 +8,9 @@ import { LazyMotion, domAnimation } from 'framer-motion'
 import { ReactLenis } from '@/components/LenisReact'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { getPayload } from 'payload'
+import config from '@/payload.config'
+import { headers } from 'next/headers'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -102,6 +105,9 @@ export const metadata: Metadata = {
 export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
+  const payload = await getPayload({ config })
+  const { user } = await payload.auth({ headers: await headers() })
+
   const organizationSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -176,7 +182,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans isolate`}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <main>
-            <ClientLayout>
+            <ClientLayout user={JSON.parse(JSON.stringify(user))}>
               <LazyMotion features={domAnimation}>
                 <ReactLenis root>{children}</ReactLenis>
               </LazyMotion>

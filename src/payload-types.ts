@@ -154,7 +154,7 @@ export interface User {
   /**
    * Controls what this user can do in the inventory system
    */
-  role: 'intern' | 'member' | 'admin';
+  role: 'visitor' | 'intern' | 'member' | 'admin';
   updatedAt: string;
   createdAt: string;
   email: string;
