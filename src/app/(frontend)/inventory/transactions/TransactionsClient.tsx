@@ -45,10 +45,12 @@ export interface TransformedAuditTransaction {
     id: string
     email: string
   }
+  status?: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
 }
 
 interface TransactionsClientProps {
   initialTransactions: TransformedAuditTransaction[]
+  currentUserRole?: 'admin' | 'member' | 'intern'
 }
 
 const typeFilters = [
@@ -62,7 +64,8 @@ const typeFilters = [
 
 type TypeFilter = (typeof typeFilters)[number]['value']
 
-export default function TransactionsClient({ initialTransactions }: TransactionsClientProps) {
+export default function TransactionsClient({ initialTransactions, currentUserRole }: TransactionsClientProps) {
+  const [transactions, setTransactions] = useState<TransformedAuditTransaction[]>(initialTransactions)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<TypeFilter>('all')
 
@@ -72,13 +75,18 @@ export default function TransactionsClient({ initialTransactions }: Transactions
   // Real-time SSE Live Updates
   const { status: liveStatus } = useInventoryLiveUpdates()
 
+  // Keep synced if server props update
+  React.useEffect(() => {
+    setTransactions(initialTransactions)
+  }, [initialTransactions])
+
   const stats = useMemo(() => {
     let checkouts = 0
     let returns = 0
     let restocked = 0
     let damaged = 0
 
-    initialTransactions.forEach((tx) => {
+    transactions.forEach((tx) => {
       if (tx.type === 'issue') checkouts += tx.quantity
       if (tx.type === 'return') returns += tx.quantity
       if (tx.type === 'restock') restocked += tx.quantity
@@ -86,16 +94,16 @@ export default function TransactionsClient({ initialTransactions }: Transactions
     })
 
     return {
-      totalLogs: initialTransactions.length,
+      totalLogs: transactions.length,
       checkouts,
       returns,
       restocked,
       damaged,
     }
-  }, [initialTransactions])
+  }, [transactions])
 
   const filteredTransactions = useMemo(() => {
-    return initialTransactions.filter((tx) => {
+    return transactions.filter((tx) => {
       if (selectedType !== 'all' && tx.type !== selectedType) {
         return false
       }
@@ -115,7 +123,25 @@ export default function TransactionsClient({ initialTransactions }: Transactions
 
       return true
     })
-  }, [initialTransactions, selectedType, searchQuery])
+  }, [transactions, selectedType, searchQuery])
+
+  const handleApproval = async (txId: string, status: 'approved' | 'rejected') => {
+    try {
+      const response = await fetch(`/api/inventory/transaction/${txId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to update transaction')
+      
+      setTransactions((prev) => 
+        prev.map(t => t.id === txId ? { ...t, status: data.transaction.status } : t)
+      )
+    } catch (err: any) {
+      console.error(err)
+    }
+  }
 
   const getBadge = (type: TransformedAuditTransaction['type']) => {
     switch (type) {
@@ -383,10 +409,40 @@ export default function TransactionsClient({ initialTransactions }: Transactions
                       </div>
                     </div>
 
-                    {/* Timestamp */}
-                    <div className="text-xs font-mono text-white/40 shrink-0 md:text-right flex items-center md:flex-col gap-1.5 md:gap-0">
-                      <Clock className="w-3 h-3 md:hidden text-white/30" />
-                      <span>{formatDate(tx.timestamp)}</span>
+                    {/* Timestamp & Actions */}
+                    <div className="flex flex-col items-end gap-2 shrink-0">
+                      <div className="text-xs font-mono text-white/40 flex items-center gap-1.5">
+                        <Clock className="w-3 h-3 md:hidden text-white/30" />
+                        <span>{formatDate(tx.timestamp)}</span>
+                      </div>
+                      
+                      {tx.status === 'pending' && (
+                        <div className="flex flex-col items-end gap-1.5 mt-1">
+                          <span className="text-[10px] uppercase font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20 inline-block w-fit">
+                            Pending Approval
+                          </span>
+                          {(currentUserRole === 'admin' || currentUserRole === 'member') && (
+                            <div className="flex items-center gap-1">
+                              <button onClick={() => handleApproval(tx.id, 'approved')} className="bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 px-2 py-1 rounded text-xs transition-colors cursor-pointer border border-emerald-500/30">
+                                Approve
+                              </button>
+                              <button onClick={() => handleApproval(tx.id, 'rejected')} className="bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 px-2 py-1 rounded text-xs transition-colors cursor-pointer border border-rose-500/30">
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {tx.status === 'rejected' && (
+                        <span className="text-[10px] uppercase font-bold text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded-md border border-rose-400/20 mt-1 inline-block w-fit">
+                          Rejected
+                        </span>
+                      )}
+                      {(tx.status === 'completed' || tx.status === 'approved') && tx.type === 'issue' && (
+                         <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20 mt-1 inline-block w-fit">
+                          Approved
+                        </span>
+                      )}
                     </div>
                   </m.div>
                 )

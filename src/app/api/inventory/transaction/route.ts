@@ -51,6 +51,11 @@ export async function POST(request: NextRequest) {
         })
         if (usersResult.docs.length > 0) {
           issuedToUserId = usersResult.docs[0].id
+        } else {
+          return NextResponse.json(
+            { error: `No user found with email ${issuedToEmail}` },
+            { status: 400 }
+          )
         }
       }
     }

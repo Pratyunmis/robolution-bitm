@@ -14,8 +14,8 @@ export const InventoryTransactions: CollectionConfig = {
   },
   access: {
     read: isInternOrAbove,
-    create: isMemberOrAdmin,
-    update: isAdmin,
+    create: isInternOrAbove, // Interns can create pending requests
+    update: isMemberOrAdmin, // Members and Admins can approve/reject
     // Transactions form an immutable audit trail
     delete: () => false,
   },
@@ -42,6 +42,30 @@ export const InventoryTransactions: CollectionConfig = {
       ],
       admin: {
         description: 'Type of transaction',
+      },
+    },
+    {
+      name: 'status',
+      type: 'select',
+      defaultValue: 'completed',
+      options: [
+        { label: 'Pending Approval', value: 'pending' },
+        { label: 'Approved', value: 'approved' },
+        { label: 'Rejected', value: 'rejected' },
+        { label: 'Completed', value: 'completed' },
+        { label: 'Cancelled', value: 'cancelled' },
+      ],
+      admin: {
+        description: 'Workflow status',
+      },
+    },
+    {
+      name: 'approvedBy',
+      type: 'relationship',
+      relationTo: 'users',
+      admin: {
+        readOnly: true,
+        position: 'sidebar',
       },
     },
     {
@@ -111,12 +135,31 @@ export const InventoryTransactions: CollectionConfig = {
       },
     ],
     beforeChange: [
-      async ({ data, operation, req }) => {
+      async ({ data, operation, originalDoc, req }) => {
         if (operation === 'create') {
           // Auto-set tracking fields
           data.performedBy = req.user?.id
           data.timestamp = new Date().toISOString()
+          
+          // Workflow logic: Interns need approval, others auto-complete
+          if (req.user?.role === 'intern') {
+            data.status = 'pending'
+          } else {
+            data.status = 'completed'
+          }
+        } else if (operation === 'update' && originalDoc) {
+          // If status changes to completed/approved, record approver
+          if (originalDoc.status === 'pending' && (data.status === 'completed' || data.status === 'approved')) {
+            data.approvedBy = req.user?.id
+          }
+        }
 
+        // Apply quantity logic ONLY when status becomes completed
+        const isNewlyCompleted = 
+          (operation === 'create' && data.status === 'completed') ||
+          (operation === 'update' && originalDoc?.status === 'pending' && (data.status === 'completed' || data.status === 'approved'))
+
+        if (isNewlyCompleted) {
           // 1. Fetch the related item
           const item = await req.payload.findByID({
             collection: 'inventory-items',

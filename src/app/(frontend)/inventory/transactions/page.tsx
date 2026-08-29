@@ -1,5 +1,6 @@
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { headers } from 'next/headers'
 import TransactionsClient, { TransformedAuditTransaction } from './TransactionsClient'
 import type { InventoryTransaction, InventoryItem, User } from '@/payload-types'
 import type { Metadata } from 'next'
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 export default async function TransactionsPage() {
   try {
     const payload = await getPayload({ config })
+    const { user } = await payload.auth({ headers: await headers() })
 
     const transactionsResult = await payload.find({
       collection: 'inventory-transactions',
@@ -41,11 +43,12 @@ export default async function TransactionsPage() {
           },
           performedBy: performer ? { id: performer.id.toString(), email: performer.email } : undefined,
           issuedTo: recipient ? { id: recipient.id.toString(), email: recipient.email } : undefined,
+          status: tx.status,
         }
       },
     )
 
-    return <TransactionsClient initialTransactions={transactions} />
+    return <TransactionsClient initialTransactions={transactions} currentUserRole={user?.role} />
   } catch (error) {
     console.error('Error fetching inventory transactions:', error)
     return <TransactionsClient initialTransactions={[]} />

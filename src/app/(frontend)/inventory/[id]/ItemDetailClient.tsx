@@ -67,12 +67,14 @@ export interface TransformedTransaction {
     id: string
     email: string
   }
+  status?: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
 }
 
 interface ItemDetailClientProps {
   item: DetailedInventoryItem
   transactions: TransformedTransaction[]
   descriptionHtml: string
+  currentUserRole?: 'admin' | 'member' | 'intern'
 }
 
 type DialogType = 'issue' | 'return' | 'restock' | 'damage' | null
@@ -81,6 +83,7 @@ export default function ItemDetailClient({
   item: initialItem,
   transactions: initialTransactions,
   descriptionHtml,
+  currentUserRole,
 }: ItemDetailClientProps) {
   const [item, setItem] = useState<DetailedInventoryItem>(initialItem)
   const [transactions, setTransactions] = useState<TransformedTransaction[]>(initialTransactions)
@@ -186,17 +189,51 @@ export default function ItemDetailClient({
           reason: formReason || undefined,
           timestamp: new Date().toISOString(),
           issuedTo: formRecipient ? { id: '', email: formRecipient } : undefined,
+          status: data.transaction.status,
         }
         setTransactions((prev) => [newTx, ...prev])
       }
 
-      setSuccessMsg(`Successfully processed ${activeDialog} of ${formQuantity} unit(s)!`)
+      const msgPrefix = data.transaction?.status === 'pending' ? 'Requested' : 'Successfully processed'
+      setSuccessMsg(`${msgPrefix} ${activeDialog} of ${formQuantity} unit(s)!`)
       setTimeout(() => setSuccessMsg(null), 4000)
       closeDialog()
     } catch (err: any) {
       setErrorMsg(err.message || 'Transaction error occurred')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleApproval = async (txId: string, status: 'approved' | 'rejected') => {
+    try {
+      const response = await fetch(`/api/inventory/transaction/${txId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to update transaction')
+      
+      // Update local state
+      setTransactions((prev) => 
+        prev.map(t => t.id === txId ? { ...t, status: data.transaction.status } : t)
+      )
+      
+      if (data.updatedItem) {
+        setItem((prev) => ({
+          ...prev,
+          quantityAvailable: data.updatedItem.quantityAvailable ?? prev.quantityAvailable,
+          quantityIssued: data.updatedItem.quantityIssued ?? prev.quantityIssued,
+          status: data.updatedItem.status ?? prev.status,
+        }))
+      }
+      
+      setSuccessMsg(`Transaction ${status} successfully!`)
+      setTimeout(() => setSuccessMsg(null), 4000)
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error updating transaction')
+      setTimeout(() => setErrorMsg(null), 4000)
     }
   }
 
@@ -415,7 +452,13 @@ export default function ItemDetailClient({
                 className="w-full rounded-2xl py-6 font-bold text-base bg-white text-black hover:bg-gray-100 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 <Zap className="w-5 h-5 fill-current" />
-                <span>{isOutOfStock ? 'Item Out of Stock' : 'Request Checkout'}</span>
+                <span>
+                  {isOutOfStock 
+                    ? 'Item Out of Stock' 
+                    : currentUserRole === 'intern' 
+                      ? 'Request Checkout' 
+                      : 'Checkout Now'}
+                </span>
               </Button>
 
               {/* Return Trigger */}
@@ -657,9 +700,39 @@ export default function ItemDetailClient({
                           </div>
                         </div>
 
-                        {/* Timestamp */}
-                        <div className="text-xs font-mono text-white/40 shrink-0 sm:text-right">
-                          {formatDate(tx.timestamp)}
+                        {/* Timestamp & Actions */}
+                        <div className="flex flex-col sm:items-end gap-2 shrink-0">
+                          <div className="text-xs font-mono text-white/40">
+                            {formatDate(tx.timestamp)}
+                          </div>
+                          
+                          {tx.status === 'pending' && (
+                            <div className="flex flex-col sm:items-end gap-1.5 mt-1">
+                              <span className="text-[10px] uppercase font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20 inline-block w-fit">
+                                Pending Approval
+                              </span>
+                              {(currentUserRole === 'admin' || currentUserRole === 'member') && (
+                                <div className="flex items-center gap-1">
+                                  <button onClick={() => handleApproval(tx.id, 'approved')} className="bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 px-2 py-1 rounded text-xs transition-colors cursor-pointer border border-emerald-500/30">
+                                    Approve
+                                  </button>
+                                  <button onClick={() => handleApproval(tx.id, 'rejected')} className="bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 px-2 py-1 rounded text-xs transition-colors cursor-pointer border border-rose-500/30">
+                                    Reject
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {tx.status === 'rejected' && (
+                            <span className="text-[10px] uppercase font-bold text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded-md border border-rose-400/20 mt-1 inline-block w-fit">
+                              Rejected
+                            </span>
+                          )}
+                          {(tx.status === 'completed' || tx.status === 'approved') && tx.type === 'issue' && (
+                             <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20 mt-1 inline-block w-fit">
+                              Approved
+                            </span>
+                          )}
                         </div>
                       </div>
                     )
@@ -806,7 +879,7 @@ export default function ItemDetailClient({
                     {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
                     <span>
                       {activeDialog === 'issue'
-                        ? 'Confirm Checkout'
+                        ? (currentUserRole === 'intern' ? 'Submit Request' : 'Confirm Checkout')
                         : activeDialog === 'return'
                           ? 'Confirm Return'
                           : activeDialog === 'restock'

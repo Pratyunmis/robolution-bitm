@@ -770,6 +770,11 @@ export interface InventoryTransaction {
    */
   type: 'issue' | 'return' | 'restock' | 'adjust' | 'damage';
   /**
+   * Workflow status
+   */
+  status?: ('pending' | 'approved' | 'rejected' | 'completed' | 'cancelled') | null;
+  approvedBy?: (number | null) | User;
+  /**
    * Number of units (must be positive)
    */
   quantity: number;
@@ -1412,6 +1417,8 @@ export interface InventoryItemsSelect<T extends boolean = true> {
 export interface InventoryTransactionsSelect<T extends boolean = true> {
   item?: T;
   type?: T;
+  status?: T;
+  approvedBy?: T;
   quantity?: T;
   issuedTo?: T;
   reason?: T;

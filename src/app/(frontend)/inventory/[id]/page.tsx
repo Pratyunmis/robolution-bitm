@@ -2,6 +2,7 @@ import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { renderLexical } from '@/lib/lexicalToHtml'
 import { notFound } from 'next/navigation'
+import { headers } from 'next/headers'
 import ItemDetailClient, {
   DetailedInventoryItem,
   TransformedTransaction,
@@ -45,6 +46,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
 
   try {
     const payload = await getPayload({ config })
+    const { user } = await payload.auth({ headers: await headers() })
 
     // Fetch the specific inventory item with depth: 2
     const item = (await payload.findByID({
@@ -125,6 +127,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
           timestamp: tx.timestamp || tx.createdAt,
           performedBy: performer ? { id: performer.id.toString(), email: performer.email } : undefined,
           issuedTo: recipient ? { id: recipient.id.toString(), email: recipient.email } : undefined,
+          status: tx.status,
         }
       },
     )
@@ -134,6 +137,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
         item={detailedItem}
         transactions={transactions}
         descriptionHtml={descriptionHtml}
+        currentUserRole={user?.role}
       />
     )
   } catch (error) {
