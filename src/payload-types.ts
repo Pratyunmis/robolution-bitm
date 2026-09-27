@@ -78,6 +78,9 @@ export interface Config {
     sponsors: Sponsor;
     gallery: Gallery;
     newsletter: Newsletter;
+    'inventory-categories': InventoryCategory;
+    'inventory-items': InventoryItem;
+    'inventory-transactions': InventoryTransaction;
     forms: Form;
     'form-submissions': FormSubmission;
     'payload-kv': PayloadKv;
@@ -98,6 +101,9 @@ export interface Config {
     sponsors: SponsorsSelect<false> | SponsorsSelect<true>;
     gallery: GallerySelect<false> | GallerySelect<true>;
     newsletter: NewsletterSelect<false> | NewsletterSelect<true>;
+    'inventory-categories': InventoryCategoriesSelect<false> | InventoryCategoriesSelect<true>;
+    'inventory-items': InventoryItemsSelect<false> | InventoryItemsSelect<true>;
+    'inventory-transactions': InventoryTransactionsSelect<false> | InventoryTransactionsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -145,6 +151,10 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  /**
+   * Controls what this user can do in the inventory system
+   */
+  role: 'visitor' | 'intern' | 'member' | 'admin';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -654,6 +664,134 @@ export interface Newsletter {
   createdAt: string;
 }
 /**
+ * Categories for organizing inventory items
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-categories".
+ */
+export interface InventoryCategory {
+  id: number;
+  /**
+   * Name of the category (e.g. Sensors, Motors)
+   */
+  name: string;
+  /**
+   * Optional description of what belongs in this category
+   */
+  description?: string | null;
+  /**
+   * Optional category icon or photo
+   */
+  image?: (number | null) | Media;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Individual items and components in the club inventory
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-items".
+ */
+export interface InventoryItem {
+  id: number;
+  /**
+   * Name of the item (e.g. Arduino Uno R3)
+   */
+  name: string;
+  /**
+   * Optional internal tracking code (e.g. MC-001)
+   */
+  sku?: string | null;
+  category: number | InventoryCategory;
+  /**
+   * Detailed specifications or notes about the item
+   */
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Optional photo of the item
+   */
+  image?: (number | null) | Media;
+  /**
+   * Where this item is stored (e.g. Lab Shelf A3)
+   */
+  location?: string | null;
+  /**
+   * Total units owned by the club
+   */
+  quantityTotal?: number | null;
+  /**
+   * Units currently available in the lab
+   */
+  quantityAvailable?: number | null;
+  /**
+   * Units currently checked out to members
+   */
+  quantityIssued?: number | null;
+  /**
+   * Alert threshold for reordering
+   */
+  minimumStock?: number | null;
+  /**
+   * Automatically managed based on availability
+   */
+  status?: ('active' | 'out-of-stock' | 'discontinued') | null;
+  addedBy?: (number | null) | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Audit trail of all inventory movements (issue, return, restock, adjust)
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-transactions".
+ */
+export interface InventoryTransaction {
+  id: number;
+  /**
+   * The item being transacted
+   */
+  item: number | InventoryItem;
+  /**
+   * Type of transaction
+   */
+  type: 'issue' | 'return' | 'restock' | 'adjust' | 'damage';
+  /**
+   * Workflow status
+   */
+  status?: ('pending' | 'approved' | 'rejected' | 'completed' | 'cancelled') | null;
+  approvedBy?: (number | null) | User;
+  /**
+   * Number of units (must be positive)
+   */
+  quantity: number;
+  /**
+   * Required if type is Issue. Who is receiving the items?
+   */
+  issuedTo?: (number | null) | User;
+  /**
+   * Required if type is Adjust. Optional notes for other types.
+   */
+  reason?: string | null;
+  performedBy?: (number | null) | User;
+  timestamp?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms".
  */
@@ -930,6 +1068,18 @@ export interface PayloadLockedDocument {
         value: number | Newsletter;
       } | null)
     | ({
+        relationTo: 'inventory-categories';
+        value: number | InventoryCategory;
+      } | null)
+    | ({
+        relationTo: 'inventory-items';
+        value: number | InventoryItem;
+      } | null)
+    | ({
+        relationTo: 'inventory-transactions';
+        value: number | InventoryTransaction;
+      } | null)
+    | ({
         relationTo: 'forms';
         value: number | Form;
       } | null)
@@ -984,6 +1134,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1225,6 +1376,54 @@ export interface NewsletterSelect<T extends boolean = true> {
   email?: T;
   active?: T;
   subscribedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-categories_select".
+ */
+export interface InventoryCategoriesSelect<T extends boolean = true> {
+  name?: T;
+  description?: T;
+  image?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-items_select".
+ */
+export interface InventoryItemsSelect<T extends boolean = true> {
+  name?: T;
+  sku?: T;
+  category?: T;
+  description?: T;
+  image?: T;
+  location?: T;
+  quantityTotal?: T;
+  quantityAvailable?: T;
+  quantityIssued?: T;
+  minimumStock?: T;
+  status?: T;
+  addedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "inventory-transactions_select".
+ */
+export interface InventoryTransactionsSelect<T extends boolean = true> {
+  item?: T;
+  type?: T;
+  status?: T;
+  approvedBy?: T;
+  quantity?: T;
+  issuedTo?: T;
+  reason?: T;
+  performedBy?: T;
+  timestamp?: T;
   updatedAt?: T;
   createdAt?: T;
 }

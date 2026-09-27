@@ -266,3 +266,10 @@ html.lenis body {
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite linear;
 }
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-3px, -2px, 0) rotate(-0.5deg); }
+  20%, 80% { transform: translate3d(4px, 3px, 0) rotate(0.8deg); }
+  30%, 50%, 70% { transform: translate3d(-6px, -5px, 0) rotate(-1deg); }
+  40%, 60% { transform: translate3d(6px, 5px, 0) rotate(1deg); }
+}

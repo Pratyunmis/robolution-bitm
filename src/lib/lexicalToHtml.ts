@@ -1,8 +1,9 @@
 import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
-import type { SerializedEditorState, SerializedLexicalNode } from 'lexical'
+
+type LexicalContent = Parameters<typeof convertLexicalToHTML>[0]['data']
 
 export async function renderLexical(
-  content: SerializedEditorState<SerializedLexicalNode>,
+  content: LexicalContent,
 ): Promise<string> {
   if (!content) return ''
   return convertLexicalToHTML({ data: content })

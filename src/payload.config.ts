@@ -18,6 +18,9 @@ import { Annoucement } from './collections/Annoucement'
 import { Sponsors } from './collections/Sponsors'
 import { Gallery } from './collections/Gallery'
 import { Newsletter } from './collections/Newsletter'
+import { InventoryCategories } from './collections/InventoryCategories'
+import { InventoryItems } from './collections/InventoryItems'
+import { InventoryTransactions } from './collections/InventoryTransactions'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -25,13 +28,18 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: Users.slug,
+    theme: 'dark',
     importMap: {
       baseDir: path.resolve(dirname),
     },
     components: {
       graphics: {
         Logo: './components/Logo',
+        Icon: './components/admin/AdminIcon',
       },
+      beforeDashboard: [
+        './components/admin/AdminDashboardBanner',
+      ],
     },
   },
   collections: [
@@ -46,6 +54,9 @@ export default buildConfig({
     Sponsors,
     Gallery,
     Newsletter,
+    InventoryCategories,
+    InventoryItems,
+    InventoryTransactions,
   ],
   editor: lexicalEditor(),
   secret: process.env.PAYLOAD_SECRET || '',

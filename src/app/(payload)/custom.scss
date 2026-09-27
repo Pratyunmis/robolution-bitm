@@ -1,0 +1,444 @@
+/* ==========================================================================
+   ROBOLUTION // PAYLOAD CMS CYBERPUNK ADMIN THEME
+   Official Robotics Club of BIT Mesra • Team Pratyumnis
+   ========================================================================== */
+
+/* 1. Global Background & Cyber Grid */
+html,
+html[data-theme='dark'],
+body {
+  background-color: #06070a !important;
+  background-image:
+    radial-gradient(ellipse 90% 50% at 50% -20%, rgba(0, 240, 255, 0.08), transparent 75%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(239, 68, 68, 0.05), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px) !important;
+  background-size: 100% 100%, 100% 100%, 48px 48px, 48px 48px !important;
+  background-attachment: fixed !important;
+  color: #e2e8f0 !important;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11" !important;
+}
+
+/* 2. Top HUD Command Banner */
+.robolution-hud-banner {
+  margin-top: 1rem;
+  margin-bottom: 2.25rem;
+  background: linear-gradient(135deg, rgba(10, 14, 22, 0.85) 0%, rgba(5, 7, 10, 0.95) 100%);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 16px;
+  padding: 1.5rem 1.75rem;
+  backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 40px -10px rgba(0, 240, 255, 0.12), inset 0 1px 0 rgba(0, 240, 255, 0.35);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #00f0ff 0%, #3b82f6 50%, #ef4444 100%);
+  }
+
+  .robolution-hud-telemetry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.25rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+  }
+
+  .robolution-hud-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #4ade80;
+    font-weight: 700;
+  }
+
+  .robolution-hud-pulse {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 10px #22c55e;
+    animation: robolution-pulse 2s infinite;
+  }
+
+  .robolution-hud-meta {
+    color: rgba(255, 255, 255, 0.4);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .divider {
+      color: rgba(0, 240, 255, 0.4);
+    }
+  }
+
+  .robolution-hud-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .robolution-hud-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid rgba(0, 240, 255, 0.35);
+    padding: 3px 10px;
+    border-radius: 9999px;
+    margin-bottom: 0.5rem;
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00f0ff;
+      box-shadow: 0 0 6px #00f0ff;
+    }
+
+    .badge-text {
+      color: #00f0ff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: monospace;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+  }
+
+  .robolution-hud-title {
+    font-size: 1.85rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    color: #ffffff;
+    margin: 0;
+    font-family: var(--font-space-grotesk), monospace, sans-serif;
+
+    .title-accent {
+      background: linear-gradient(to right, #00f0ff, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+    }
+  }
+
+  .robolution-hud-sub {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    margin: 0.4rem 0 0 0;
+
+    .user-email {
+      color: #f1f5f9;
+      font-weight: 600;
+    }
+  }
+
+  .robolution-hud-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .robolution-hud-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+    &.primary {
+      background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%);
+      color: #000000;
+      box-shadow: 0 4px 15px rgba(0, 240, 255, 0.35);
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 22px rgba(0, 240, 255, 0.55);
+        filter: brightness(1.1);
+      }
+    }
+
+    &.secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f1f5f9;
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.12);
+        border-color: rgba(0, 240, 255, 0.4);
+        color: #00f0ff;
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+@keyframes robolution-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.15); }
+}
+
+/* 3. Section Headers ("Collections", "Legal", "Inventory") */
+.dashboard h2,
+.dashboard h3,
+.dashboard__group-title,
+.dashboard [class*="group-title"],
+.dashboard [class*="GroupTitle"],
+.dashboard [class*="label"],
+[class*="DashboardStepNav"] h2,
+[class*="DashboardStepNav"] h3 {
+  font-family: var(--font-space-grotesk), monospace, sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0.04em !important;
+  color: #ffffff !important;
+  text-transform: uppercase !important;
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding-left: 0.85rem !important;
+  margin-top: 2rem !important;
+  margin-bottom: 1.25rem !important;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 15%;
+    bottom: 15%;
+    width: 3.5px;
+    background: #00f0ff;
+    box-shadow: 0 0 10px #00f0ff;
+    border-radius: 4px;
+  }
+}
+
+/* 4. Dashboard Cards Overhaul */
+.card,
+[class*="Card_card"],
+.card--has-onclick {
+  background: linear-gradient(135deg, rgba(16, 20, 28, 0.8) 0%, rgba(9, 11, 16, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  padding: 1.1rem 1.25rem !important;
+
+  /* Neon cyber accent line on card top */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.8), transparent);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(20, 26, 38, 0.9) 0%, rgba(12, 16, 24, 0.98) 100%) !important;
+    border-color: rgba(0, 240, 255, 0.45) !important;
+    box-shadow: 0 8px 30px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(0, 240, 255, 0.3) !important;
+    transform: translateY(-2px);
+
+    &::before {
+      opacity: 1;
+    }
+
+    .card__title,
+    [class*="Card_title"] {
+      color: #00f0ff !important;
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.5) !important;
+    }
+
+    .btn__icon {
+      border-color: #00f0ff !important;
+      color: #00f0ff !important;
+      background: rgba(0, 240, 255, 0.15) !important;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.4) !important;
+    }
+  }
+
+  .card__title,
+  [class*="Card_title"] {
+    color: #f1f5f9 !important;
+    font-family: var(--font-space-grotesk), monospace, sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.02em !important;
+    transition: color 0.2s ease, text-shadow 0.2s ease !important;
+  }
+
+  .btn__icon {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 8px !important;
+    color: #94a3b8 !important;
+    transition: all 0.2s ease !important;
+  }
+}
+
+/* 5. Sidebar Navigation Overhaul */
+.nav,
+[class*="NavWrapper"],
+[class*="DefaultNav"] {
+  background: rgba(6, 8, 12, 0.95) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) !important;
+
+  .nav__link,
+  [class*="nav__link"],
+  a {
+    color: #94a3b8 !important;
+    border-radius: 8px !important;
+    transition: all 0.15s ease !important;
+    padding: 0.45rem 0.75rem !important;
+
+    &:hover {
+      color: #ffffff !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-left: 2px solid #00f0ff !important;
+    }
+  }
+
+  .nav__link--active,
+  [class*="nav__link"][class*="active"],
+  a[aria-current="page"] {
+    color: #00f0ff !important;
+    background: rgba(0, 240, 255, 0.08) !important;
+    border-left: 2px solid #00f0ff !important;
+    font-weight: 700 !important;
+  }
+
+  .nav__group-label,
+  [class*="NavGroup"] button {
+    font-family: monospace !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.15em !important;
+    color: #64748b !important;
+    text-transform: uppercase !important;
+  }
+}
+
+/* 6. Top App Header */
+.app-header,
+[class*="AppHeader"] {
+  background: rgba(6, 8, 12, 0.85) !important;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+/* 7. Action Buttons */
+.btn,
+[class*="Button_btn"] {
+  border-radius: 8px !important;
+  font-family: var(--font-space-grotesk), monospace, sans-serif !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn--style-primary,
+[class*="btn--style-primary"],
+[class*="Button_primary"] {
+  background: linear-gradient(135deg, #00f0ff 0%, #0284c7 100%) !important;
+  color: #000000 !important;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3) !important;
+
+  &:hover {
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.5) !important;
+    filter: brightness(1.1) !important;
+  }
+}
+
+.btn--style-secondary,
+[class*="btn--style-secondary"] {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #f1f5f9 !important;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: #00f0ff !important;
+    color: #00f0ff !important;
+  }
+}
+
+/* 8. Input Fields & Form Controls */
+input,
+textarea,
+select,
+[class*="input"] {
+  background: rgba(10, 14, 20, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: #f8fafc !important;
+  transition: all 0.2s ease !important;
+
+  &:focus {
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.25) !important;
+    outline: none !important;
+  }
+}
+
+/* 9. Data Tables in Collections */
+.table,
+[class*="Table"] {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+  th {
+    background: rgba(14, 18, 25, 0.95) !important;
+    font-family: monospace !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    color: #94a3b8 !important;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.2) !important;
+  }
+
+  tr:hover td {
+    background: rgba(0, 240, 255, 0.04) !important;
+  }
+}
+
+/* 10. Sleek Neon Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #050608;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 240, 255, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 240, 255, 0.6);
+}

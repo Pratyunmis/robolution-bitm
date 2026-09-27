@@ -5,8 +5,8 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
+    setupFiles: ['dotenv/config'],
     environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
     include: ['tests/int/**/*.int.spec.ts'],
   },
 })
