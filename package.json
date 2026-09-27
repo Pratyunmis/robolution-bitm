@@ -88,11 +88,6 @@
       "sharp",
       "esbuild",
       "unrs-resolver"
-<<<<<<< Updated upstream
-    ]
-  },
-  "packageManager": "pnpm@10.33.4"
-=======
     ],
     "overrides": {
       "@payloadcms/db-postgres": "3.85.0",
@@ -104,6 +99,6 @@
       "@payloadcms/ui": "3.85.0",
       "payload": "3.85.0"
     }
-  }
->>>>>>> Stashed changes
+  },
+  "packageManager": "pnpm@10.33.4"
 }
