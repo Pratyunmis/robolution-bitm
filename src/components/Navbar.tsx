@@ -124,7 +124,16 @@ export const Navbar = () => {
                   )
                 })}
 
-                <div className="ml-1 pl-3 border-l border-white/20 flex items-center">
+                <div className="ml-1 pl-3 border-l border-white/20 flex items-center gap-2">
+                  {(user?.role === 'admin' || user?.role === 'member') && (
+                    <Link
+                      href="/admin"
+                      className="px-3.5 py-1.5 text-xs font-mono font-bold tracking-wider uppercase text-cyan-400 bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/40 hover:border-cyan-400 rounded-full transition-all shadow-[0_0_15px_rgba(6,182,212,0.25)] flex items-center gap-1.5"
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                      <span>Dashboard</span>
+                    </Link>
+                  )}
                   {!user ? (
                     <Link 
                       href="/login"
@@ -136,6 +145,7 @@ export const Navbar = () => {
                     <Link 
                       href="/profile" 
                       className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800 border-2 border-zinc-700 hover:border-sky-500 transition-all overflow-hidden"
+                      title={user.email}
                     >
                       <span className="text-zinc-300 text-xs font-bold md:text-sm uppercase">
                         {user.email ? user.email.charAt(0) : 'U'}
@@ -229,7 +239,22 @@ export const Navbar = () => {
                       )
                     })}
                     
-                    <div className="mt-2 pt-4 border-t border-white/10">
+                    <div className="mt-2 pt-4 border-t border-white/10 flex flex-col gap-2">
+                      {(user?.role === 'admin' || user?.role === 'member') && (
+                        <Link 
+                          href="/admin"
+                          onClick={handleNavClick}
+                          className="flex items-center justify-between w-full px-6 py-3.5 text-base font-semibold rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-cyan-300 transition-colors hover:bg-cyan-900/50"
+                        >
+                          <span className="flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                            Admin Dashboard
+                          </span>
+                          <span className="text-xs uppercase font-mono text-cyan-400/80 px-2 py-0.5 rounded bg-cyan-900/40 border border-cyan-500/20">
+                            {user.role}
+                          </span>
+                        </Link>
+                      )}
                       {!user ? (
                         <Link 
                           href="/login"

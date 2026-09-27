@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAdmin, isMemberOrAdmin, isSelfOrAdmin } from '../access/roles'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -6,6 +7,19 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
   },
   auth: true,
+  access: {
+    // Only Admin and Member can access the Admin Dashboard
+    admin: ({ req: { user } }) => Boolean(user && (user.role === 'admin' || user.role === 'member')),
+    read: ({ req: { user }, id }) => {
+      if (!user) return false
+      if (user.role === 'admin' || user.role === 'member') return true
+      if (id) return user.id === id
+      return false
+    },
+    create: isAdmin,
+    update: isSelfOrAdmin,
+    delete: isAdmin,
+  },
   fields: [
     // Email added by default
     {

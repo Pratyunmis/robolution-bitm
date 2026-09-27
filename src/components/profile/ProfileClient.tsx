@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, LogOut, Package, UserCog } from 'lucide-react'
+import { Loader2, LogOut, Package, UserCog, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/providers/AuthContext'
 
@@ -66,6 +66,7 @@ export const ProfileClient = ({ user: initialUser }: { user: any }) => {
   }
 
   const showInventory = ['intern', 'member', 'admin'].includes(user?.role)
+  const showAdminDashboard = ['member', 'admin'].includes(user?.role)
 
   return (
     <div className="flex flex-col gap-6 w-full">
@@ -160,6 +161,33 @@ export const ProfileClient = ({ user: initialUser }: { user: any }) => {
           </div>
         )}
       </div>
+
+      {showAdminDashboard && (
+        <div className="bg-gradient-to-r from-cyan-950/40 via-blue-950/20 to-black/60 border border-cyan-500/30 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-xl shadow-cyan-950/20 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/10 blur-[80px] rounded-full pointer-events-none" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-xs font-mono uppercase tracking-[0.2em] text-cyan-400 font-bold">
+                {user?.role === 'admin' ? 'Root Admin Console' : 'Member Workspace'}
+              </span>
+            </div>
+            <h3 className="text-xl md:text-2xl font-black text-white uppercase tracking-tight flex items-center gap-2.5">
+              <ShieldCheck className="w-6 h-6 text-cyan-400" />
+              Robolution Admin Center
+            </h3>
+            <p className="text-zinc-400 text-sm mt-1 max-w-md">
+              Access the administrative CMS dashboard to manage team rosters, events, gallery releases, inventory catalog, and club announcements.
+            </p>
+          </div>
+          <Link
+            href="/admin"
+            className="relative z-10 inline-flex items-center justify-center whitespace-nowrap px-8 py-4 bg-gradient-to-r from-cyan-400 to-blue-500 text-black font-bold text-base rounded-full hover:brightness-110 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-cyan-500/25"
+          >
+            Launch Dashboard
+          </Link>
+        </div>
+      )}
 
       {showInventory && (
         <div className="bg-sky-500/10 border border-sky-500/20 rounded-2xl p-6 md:p-8 flex items-center justify-between shadow-xl shadow-sky-900/5">
