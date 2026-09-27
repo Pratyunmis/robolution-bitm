@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAdmin } from '../access/roles'
 
 export const Newsletter: CollectionConfig = {
   slug: 'newsletter',
@@ -8,8 +9,11 @@ export const Newsletter: CollectionConfig = {
     description: 'Newsletter subscription emails',
   },
   access: {
-    read: () => true,
-    create: () => true,
+    // Only admins can view subscriber emails (PII).
+    read: isAdmin,
+    create: () => true, // Public subscribe form
+    update: isAdmin,
+    delete: isAdmin,
   },
   fields: [
     {
