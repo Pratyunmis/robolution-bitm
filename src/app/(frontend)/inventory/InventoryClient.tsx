@@ -33,39 +33,13 @@ import LiveStatusBadge from '@/components/inventory/LiveStatusBadge'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
 
-export interface TransformedCategory {
-  id: string
-  name: string
-  description?: string
-  imageUrl?: string
-}
+import type {
+  InventoryItemDTO as TransformedInventoryItem,
+  InventoryCategoryDTO as TransformedCategory,
+  InventoryStatsDTO as InventoryStats,
+} from '@/types/inventory'
 
-export interface TransformedInventoryItem {
-  id: string
-  name: string
-  sku?: string
-  category: {
-    id: string
-    name: string
-  }
-  imageUrl?: string
-  location?: string
-  quantityTotal: number
-  quantityAvailable: number
-  quantityIssued: number
-  minimumStock: number
-  status: 'active' | 'out-of-stock' | 'discontinued'
-  updatedAt: string
-}
-
-export interface InventoryStats {
-  totalItems: number
-  totalUnits: number
-  totalAvailable: number
-  totalIssued: number
-  lowStockCount: number
-  outOfStockCount: number
-}
+export type { TransformedCategory, TransformedInventoryItem, InventoryStats }
 
 interface InventoryClientProps {
   initialItems: TransformedInventoryItem[]

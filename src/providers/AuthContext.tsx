@@ -1,10 +1,11 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
+import type { User } from '@/payload-types'
 
 type AuthContextType = {
-  user: any
-  setUser: (user: any) => void
+  user: User | null
+  setUser: (user: User | null) => void
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -12,12 +13,18 @@ const AuthContext = createContext<AuthContextType>({
   setUser: () => {},
 })
 
-export const AuthProvider = ({ children, initialUser }: { children: React.ReactNode, initialUser: any }) => {
-  const [user, setUser] = useState(initialUser)
+export const AuthProvider = ({
+  children,
+  initialUser,
+}: {
+  children: React.ReactNode
+  initialUser?: User | null
+}) => {
+  const [user, setUser] = useState<User | null>(initialUser ?? null)
 
   // Sync if server component provides a new initialUser (e.g. after router.refresh)
   useEffect(() => {
-    setUser(initialUser)
+    setUser(initialUser ?? null)
   }, [initialUser])
 
   return (

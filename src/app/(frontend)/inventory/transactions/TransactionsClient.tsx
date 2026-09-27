@@ -1,71 +1,30 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { m, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import DarkVeil from '@/components/DarkVeil'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import {
-  ArrowLeft,
-  Search,
-  X,
-  Clock,
-  Zap,
-  RotateCcw,
-  PlusCircle,
-  ShieldAlert,
-  Layers,
-  User as UserIcon,
-  Filter,
-  History,
-  FileSpreadsheet,
-  Download,
-} from 'lucide-react'
+import { ArrowLeft, History, Download } from 'lucide-react'
 import { useSmartRefresh } from '@/hooks/useSmartRefresh'
 import { useInventoryLiveUpdates } from '@/hooks/useInventoryLiveUpdates'
 import LiveStatusBadge from '@/components/inventory/LiveStatusBadge'
-
-export interface TransformedAuditTransaction {
-  id: string
-  type: 'issue' | 'return' | 'restock' | 'adjust' | 'damage'
-  quantity: number
-  reason?: string
-  timestamp: string
-  item: {
-    id: string
-    name: string
-    sku?: string
-  }
-  performedBy?: {
-    id: string
-    email: string
-  }
-  issuedTo?: {
-    id: string
-    email: string
-  }
-  status?: 'pending' | 'approved' | 'rejected' | 'completed' | 'cancelled'
-}
+import type { InventoryTransactionDTO, UserRole } from '@/types/inventory'
+import { TransactionStats } from '@/components/inventory/TransactionStats'
+import { TransactionFilters, TypeFilter } from '@/components/inventory/TransactionFilters'
+import { TransactionItemRow } from '@/components/inventory/TransactionItemRow'
+import { inventoryApi } from '@/lib/api/inventoryApi'
 
 interface TransactionsClientProps {
-  initialTransactions: TransformedAuditTransaction[]
-  currentUserRole?: 'admin' | 'member' | 'intern'
+  initialTransactions: InventoryTransactionDTO[]
+  currentUserRole?: UserRole
 }
 
-const typeFilters = [
-  { label: 'All Events', value: 'all' },
-  { label: 'Checkouts', value: 'issue' },
-  { label: 'Returns', value: 'return' },
-  { label: 'Restocks', value: 'restock' },
-  { label: 'Damages', value: 'damage' },
-  { label: 'Adjustments', value: 'adjust' },
-] as const
-
-type TypeFilter = (typeof typeFilters)[number]['value']
-
-export default function TransactionsClient({ initialTransactions, currentUserRole }: TransactionsClientProps) {
-  const [transactions, setTransactions] = useState<TransformedAuditTransaction[]>(initialTransactions)
+export default function TransactionsClient({
+  initialTransactions,
+  currentUserRole,
+}: TransactionsClientProps) {
+  const [transactions, setTransactions] = useState<InventoryTransactionDTO[]>(initialTransactions)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedType, setSelectedType] = useState<TypeFilter>('all')
 
@@ -76,7 +35,7 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
   const { status: liveStatus } = useInventoryLiveUpdates()
 
   // Keep synced if server props update
-  React.useEffect(() => {
+  useEffect(() => {
     setTransactions(initialTransactions)
   }, [initialTransactions])
 
@@ -110,8 +69,8 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
 
       if (searchQuery.trim() !== '') {
         const q = searchQuery.toLowerCase()
-        const matchItem = tx.item.name.toLowerCase().includes(q)
-        const matchSku = tx.item.sku ? tx.item.sku.toLowerCase().includes(q) : false
+        const matchItem = tx.item?.name.toLowerCase().includes(q) || false
+        const matchSku = tx.item?.sku ? tx.item.sku.toLowerCase().includes(q) : false
         const matchPerformer = tx.performedBy?.email.toLowerCase().includes(q) || false
         const matchRecipient = tx.issuedTo?.email.toLowerCase().includes(q) || false
         const matchReason = tx.reason ? tx.reason.toLowerCase().includes(q) : false
@@ -127,69 +86,12 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
 
   const handleApproval = async (txId: string, status: 'approved' | 'rejected') => {
     try {
-      const response = await fetch(`/api/inventory/transaction/${txId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
-      const data = await response.json()
-      if (!response.ok) throw new Error(data.error || 'Failed to update transaction')
-      
-      setTransactions((prev) => 
-        prev.map(t => t.id === txId ? { ...t, status: data.transaction.status } : t)
+      const data = await inventoryApi.updateApprovalStatus(txId, status)
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === txId ? { ...t, status: data.transaction?.status ?? status } : t)),
       )
     } catch (err: any) {
-      console.error(err)
-    }
-  }
-
-  const getBadge = (type: TransformedAuditTransaction['type']) => {
-    switch (type) {
-      case 'issue':
-        return {
-          label: 'Checkout',
-          icon: Zap,
-          color: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
-        }
-      case 'return':
-        return {
-          label: 'Return',
-          icon: RotateCcw,
-          color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
-        }
-      case 'restock':
-        return {
-          label: 'Restock',
-          icon: PlusCircle,
-          color: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
-        }
-      case 'damage':
-        return {
-          label: 'Damage Write-off',
-          icon: ShieldAlert,
-          color: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
-        }
-      case 'adjust':
-        return {
-          label: 'Adjustment',
-          icon: Layers,
-          color: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-        }
-    }
-  }
-
-  const formatDate = (isoString: string) => {
-    try {
-      const d = new Date(isoString)
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    } catch (_e) {
-      return isoString
+      console.error('Failed to update transaction approval:', err)
     }
   }
 
@@ -241,71 +143,20 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
         </div>
 
         {/* Metric Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-          <div className="bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-md">
-            <span className="text-xs text-white/50 uppercase tracking-wider block mb-1">Total Logs</span>
-            <span className="text-2xl sm:text-3xl font-black text-white">{stats.totalLogs}</span>
-          </div>
-
-          <div className="bg-sky-500/10 border border-sky-500/20 p-5 rounded-2xl backdrop-blur-md">
-            <span className="text-xs text-sky-400/80 uppercase tracking-wider block mb-1">Units Issued</span>
-            <span className="text-2xl sm:text-3xl font-black text-sky-400">{stats.checkouts}</span>
-          </div>
-
-          <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-2xl backdrop-blur-md">
-            <span className="text-xs text-emerald-400/80 uppercase tracking-wider block mb-1">Units Returned</span>
-            <span className="text-2xl sm:text-3xl font-black text-emerald-400">{stats.returns}</span>
-          </div>
-
-          <div className="bg-indigo-500/10 border border-indigo-500/20 p-5 rounded-2xl backdrop-blur-md">
-            <span className="text-xs text-indigo-400/80 uppercase tracking-wider block mb-1">Units Restocked</span>
-            <span className="text-2xl sm:text-3xl font-black text-indigo-400">{stats.restocked}</span>
-          </div>
-        </div>
+        <TransactionStats
+          totalLogs={stats.totalLogs}
+          checkouts={stats.checkouts}
+          returns={stats.returns}
+          restocked={stats.restocked}
+        />
 
         {/* Filter & Search Toolbar */}
-        <div className="space-y-4 mb-8 bg-white/5 border border-white/10 p-4 rounded-3xl backdrop-blur-xl">
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <Input
-              type="text"
-              placeholder="Search by component name, SKU, member email, or notes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-11 pr-10 py-5 bg-black/40 border-white/10 text-white placeholder:text-white/40 rounded-2xl text-sm"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-white/40 hover:text-white"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Type Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <span className="text-xs uppercase tracking-wider text-white/40 font-semibold pl-1 pr-2 flex items-center gap-1.5 shrink-0">
-              <Filter className="w-3.5 h-3.5" />
-              Filter:
-            </span>
-            {typeFilters.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => setSelectedType(opt.value)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-medium shrink-0 transition-all border ${
-                  selectedType === opt.value
-                    ? 'bg-white text-black border-white shadow-sm'
-                    : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/20'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <TransactionFilters
+          searchQuery={searchQuery}
+          selectedType={selectedType}
+          onSearchChange={setSearchQuery}
+          onTypeChange={setSelectedType}
+        />
 
         {/* Transactions List */}
         {filteredTransactions.length === 0 ? (
@@ -321,7 +172,7 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
                 setSelectedType('all')
               }}
               variant="outline"
-              className="rounded-full text-xs bg-white/10 border-white/20 text-white hover:bg-white hover:text-black"
+              className="rounded-full text-xs bg-white/10 border-white/20 text-white hover:bg-white hover:text-black cursor-pointer"
             >
               Reset Filters
             </Button>
@@ -329,124 +180,15 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
         ) : (
           <div className="space-y-3">
             <AnimatePresence>
-              {filteredTransactions.map((tx) => {
-                const badge = getBadge(tx.type)
-                const Icon = badge.icon
-
-                return (
-                  <m.div
-                    key={tx.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="bg-black/40 border border-white/10 hover:border-white/20 rounded-2xl p-5 backdrop-blur-xl transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className={`p-3 rounded-2xl border ${badge.color} shrink-0 mt-0.5`}>
-                        <Icon className="w-5 h-5" />
-                      </div>
-
-                      <div className="space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <Link
-                            href={`/inventory/${tx.item.id}`}
-                            className="font-bold text-base text-white hover:underline underline-offset-2"
-                          >
-                            {tx.item.name}
-                          </Link>
-
-                          {tx.item.sku && (
-                            <span className="text-[10px] font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5 text-white/60">
-                              {tx.item.sku}
-                            </span>
-                          )}
-
-                          <span
-                            className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border ${badge.color}`}
-                          >
-                            {badge.label}
-                          </span>
-                        </div>
-
-                        {/* Movement details */}
-                        <div className="text-sm font-medium text-white/90">
-                          {tx.type === 'issue' && (
-                            <span>Checked out {tx.quantity} unit(s)</span>
-                          )}
-                          {tx.type === 'return' && (
-                            <span>Returned {tx.quantity} unit(s) to lab</span>
-                          )}
-                          {tx.type === 'restock' && (
-                            <span className="text-indigo-300">Added +{tx.quantity} units to inventory</span>
-                          )}
-                          {tx.type === 'damage' && (
-                            <span className="text-rose-300">Written off -{tx.quantity} damaged unit(s)</span>
-                          )}
-                          {tx.type === 'adjust' && (
-                            <span>Stock adjusted to {tx.quantity} units</span>
-                          )}
-                        </div>
-
-                        {/* Meta: recipient, actor, note */}
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/50 pt-1">
-                          {tx.issuedTo && (
-                            <span className="flex items-center gap-1 text-white/70">
-                              <UserIcon className="w-3.5 h-3.5 text-white/40" />
-                              Recipient: {tx.issuedTo.email}
-                            </span>
-                          )}
-                          {tx.performedBy && (
-                            <span className="text-white/40">
-                              Logged by: {tx.performedBy.email}
-                            </span>
-                          )}
-                          {tx.reason && (
-                            <span className="italic text-white/60">
-                              &ldquo;{tx.reason}&rdquo;
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Timestamp & Actions */}
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <div className="text-xs font-mono text-white/40 flex items-center gap-1.5">
-                        <Clock className="w-3 h-3 md:hidden text-white/30" />
-                        <span>{formatDate(tx.timestamp)}</span>
-                      </div>
-                      
-                      {tx.status === 'pending' && (
-                        <div className="flex flex-col items-end gap-1.5 mt-1">
-                          <span className="text-[10px] uppercase font-bold text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded-md border border-amber-400/20 inline-block w-fit">
-                            Pending Approval
-                          </span>
-                          {(currentUserRole === 'admin' || currentUserRole === 'member') && (
-                            <div className="flex items-center gap-1">
-                              <button onClick={() => handleApproval(tx.id, 'approved')} className="bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 px-2 py-1 rounded text-xs transition-colors cursor-pointer border border-emerald-500/30">
-                                Approve
-                              </button>
-                              <button onClick={() => handleApproval(tx.id, 'rejected')} className="bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 px-2 py-1 rounded text-xs transition-colors cursor-pointer border border-rose-500/30">
-                                Reject
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      {tx.status === 'rejected' && (
-                        <span className="text-[10px] uppercase font-bold text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded-md border border-rose-400/20 mt-1 inline-block w-fit">
-                          Rejected
-                        </span>
-                      )}
-                      {(tx.status === 'completed' || tx.status === 'approved') && tx.type === 'issue' && (
-                         <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20 mt-1 inline-block w-fit">
-                          Approved
-                        </span>
-                      )}
-                    </div>
-                  </m.div>
-                )
-              })}
+              {filteredTransactions.map((tx) => (
+                <TransactionItemRow
+                  key={tx.id}
+                  tx={tx}
+                  currentUserRole={currentUserRole}
+                  onApprove={(id) => handleApproval(id, 'approved')}
+                  onReject={(id) => handleApproval(id, 'rejected')}
+                />
+              ))}
             </AnimatePresence>
           </div>
         )}
@@ -457,3 +199,4 @@ export default function TransactionsClient({ initialTransactions, currentUserRol
     </div>
   )
 }
+export type { InventoryTransactionDTO as TransformedAuditTransaction }

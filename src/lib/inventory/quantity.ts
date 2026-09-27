@@ -1,6 +1,7 @@
 import type { InventoryItem } from '../../payload-types'
+import type { TransactionType } from '@/types/inventory'
 
-export type TransactionType = 'issue' | 'return' | 'adjust' | 'restock' | 'damage'
+export type { TransactionType }
 
 export interface QuantityResult {
   quantityTotal: number
