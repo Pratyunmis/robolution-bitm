@@ -267,9 +267,46 @@ html.lenis body {
   animation: shimmer 1.6s infinite linear;
 }
 
+<<<<<<< Updated upstream
 @keyframes shake {
   10%, 90% { transform: translate3d(-3px, -2px, 0) rotate(-0.5deg); }
   20%, 80% { transform: translate3d(4px, 3px, 0) rotate(0.8deg); }
   30%, 50%, 70% { transform: translate3d(-6px, -5px, 0) rotate(-1deg); }
   40%, 60% { transform: translate3d(6px, 5px, 0) rotate(1deg); }
 }
+=======
+/* Glow pulse animation */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.05); }
+}
+
+/* Text gradient animation */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Drone float animation (CSS fallback) */
+@keyframes drone-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  75% { transform: translateY(10px) rotate(-1deg); }
+}
+
+/* Three.js canvas fix */
+canvas {
+  display: block;
+}
+
+/* Hide scrollbar but allow scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+>>>>>>> Stashed changes

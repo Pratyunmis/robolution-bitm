@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '@/payload.config'
+import { getSafePayload } from '@/lib/getSafePayload'
 import HomeClient from '@/components/HomeClient'
 import type { Sponsor, Media, Gallery as GalleryType } from '@/payload-types'
 
@@ -32,7 +31,8 @@ interface TransformedGalleryImage {
 
 async function getSponsors(): Promise<TransformedSponsor[]> {
   try {
-    const payload = await getPayload({ config })
+    const payload = await getSafePayload()
+    if (!payload) return []
 
     const sponsors = await payload.find({
       collection: 'sponsors',
@@ -45,7 +45,6 @@ async function getSponsors(): Promise<TransformedSponsor[]> {
       limit: 100,
     })
 
-    // Transform the data to match the expected format
     const transformedSponsors: TransformedSponsor[] = sponsors.docs.map((sponsor: Sponsor) => {
       const logo = typeof sponsor.logo === 'number' ? null : (sponsor.logo as Media)
 
@@ -71,17 +70,16 @@ async function getSponsors(): Promise<TransformedSponsor[]> {
     })
 
     return transformedSponsors
-  } catch (error) {
-    console.error('Error fetching sponsors:', error)
+  } catch {
     return []
   }
 }
 
 async function getGalleryImages(): Promise<TransformedGalleryImage[]> {
   try {
-    const payload = await getPayload({ config })
+    const payload = await getSafePayload()
+    if (!payload) return []
 
-    // Get featured gallery images for homepage preview
     const gallery = await payload.find({
       collection: 'gallery',
       where: {
@@ -124,8 +122,7 @@ async function getGalleryImages(): Promise<TransformedGalleryImage[]> {
     })
 
     return transformedImages
-  } catch (error) {
-    console.error('Error fetching gallery images:', error)
+  } catch {
     return []
   }
 }

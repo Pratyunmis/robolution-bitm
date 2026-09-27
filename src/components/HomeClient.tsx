@@ -1,9 +1,8 @@
 'use client'
 
+import React, { useRef, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import React from 'react'
-import DarkVeil from '@/components/DarkVeil'
 import {
   Users,
   Trophy,
@@ -17,13 +16,16 @@ import {
   Award,
   Medal,
   Star,
+  ChevronDown,
+  ArrowRight,
 } from 'lucide-react'
 import { FaLinkedin } from 'react-icons/fa'
 import Link from 'next/link'
 import CountUp from '@/components/CountUp'
-import { m } from 'framer-motion'
+import { motion as m, useScroll, useTransform, useSpring } from 'framer-motion'
 import { SponsorsSection } from '@/components/SponsorsSection'
 import { GalleryPreview } from '@/components/GalleryPreview'
+import MoltenMetal from '@/components/MoltenMetal'
 
 const stats = [
   { label: 'Audience Reach', value: 5000, icon: Users },
@@ -35,12 +37,7 @@ const stats = [
 interface Sponsor {
   id: string
   name: string
-  logo: {
-    url: string
-    alt?: string
-    width?: number
-    height?: number
-  }
+  logo: { url: string; alt?: string; width?: number; height?: number }
   website?: string
   description?: string
   active: boolean
@@ -50,12 +47,7 @@ interface Sponsor {
 interface GalleryImage {
   id: string
   title: string
-  image: {
-    url: string
-    alt?: string
-    width?: number
-    height?: number
-  }
+  image: { url: string; alt?: string; width?: number; height?: number }
   category?: string
 }
 
@@ -64,36 +56,144 @@ interface HomeClientProps {
   galleryImages: GalleryImage[]
 }
 
+// ─── Particle Field ───────────────────────────────────────────────────────────
+function ParticleField() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    let animId: number
+    const particles: { x: number; y: number; vx: number; vy: number; size: number; opacity: number }[] = []
+
+    const resize = () => {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    for (let i = 0; i < 80; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: Math.random() * 1.5 + 0.5,
+        opacity: Math.random() * 0.4 + 0.1,
+      })
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      particles.forEach((p) => {
+        p.x += p.vx
+        p.y += p.vy
+        if (p.x < 0) p.x = canvas.width
+        if (p.x > canvas.width) p.x = 0
+        if (p.y < 0) p.y = canvas.height
+        if (p.y > canvas.height) p.y = 0
+
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(255,255,255,${p.opacity})`
+        ctx.fill()
+      })
+
+      particles.forEach((a, i) => {
+        particles.slice(i + 1).forEach((b) => {
+          const dx = a.x - b.x
+          const dy = a.y - b.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          if (dist < 100) {
+            ctx.beginPath()
+            ctx.moveTo(a.x, a.y)
+            ctx.lineTo(b.x, b.y)
+            ctx.strokeStyle = `rgba(255,255,255,${0.05 * (1 - dist / 100)})`
+            ctx.lineWidth = 0.5
+            ctx.stroke()
+          }
+        })
+      })
+
+      animId = requestAnimationFrame(draw)
+    }
+    draw()
+
+    return () => {
+      cancelAnimationFrame(animId)
+      window.removeEventListener('resize', resize)
+    }
+  }, [])
+
+  return <canvas ref={canvasRef} className="fixed inset-0 z-0 pointer-events-none" />
+}
+
+function GridBackground() {
+  return (
+    <div
+      className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]"
+      style={{
+        backgroundImage: `
+          linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)
+        `,
+        backgroundSize: '60px 60px',
+      }}
+    />
+  )
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-xs uppercase tracking-[0.4em] text-white/40 font-semibold border border-white/10 px-4 py-2 rounded-full inline-block mb-6">
+      {children}
+    </span>
+  )
+}
+
+function GlowOrb({ className }: { className?: string }) {
+  return (
+    <div
+      className={`absolute rounded-full pointer-events-none ${className}`}
+      style={{ filter: 'blur(100px)' }}
+    />
+  )
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
   const [email, setEmail] = React.useState('')
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [message, setMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(
-    null,
-  )
+  const [message, setMessage] = React.useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const heroRef = useRef<HTMLDivElement>(null)
+  const { scrollY } = useScroll()
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0])
+  const heroY = useTransform(scrollY, [0, 500], [0, 80])
+  const springHeroY = useSpring(heroY, { stiffness: 100, damping: 30 })
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
     setMessage(null)
-
     try {
       const response = await fetch('/api/newsletter', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-
       const data = await response.json()
-
       if (response.ok) {
         setMessage({ type: 'success', text: 'Successfully subscribed to our newsletter!' })
         setEmail('')
       } else {
         setMessage({ type: 'error', text: data.error || 'Failed to subscribe. Please try again.' })
       }
-    } catch (_error) {
+    } catch {
       setMessage({ type: 'error', text: 'An error occurred. Please try again later.' })
     } finally {
       setIsSubmitting(false)
@@ -102,477 +202,385 @@ const HomeClient: React.FC<HomeClientProps> = ({ sponsors, galleryImages }) => {
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-white/20 font-sans overflow-x-hidden">
-      {/* Fixed Background */}
-      <div className="fixed inset-0 z-0 opacity-40 pointer-events-none">
-        <DarkVeil />
+      <div className="fixed inset-0 z-0 pointer-events-none opacity-40">
+        <MoltenMetal
+          color1="#5227FF"
+          color2="#FF9FFC"
+          color3="#FFFFFF"
+          speed={0.35}
+          scale={4}
+          detail={3}
+          glow={1.3}
+          coreSize={0.12}
+          swirl={1}
+          fold={-0.2}
+          blackPoint={0.14}
+          brightness={1.3}
+          colorMode="molten"
+          grain={true}
+          grainIntensity={0.04}
+          mouseInteraction={true}
+          mouseStrength={0.3}
+          opacity={1.0}
+        />
       </div>
+      <ParticleField />
+      <GridBackground />
+      <div className="fixed inset-0 z-0 pointer-events-none bg-radial-[ellipse_at_center] from-white/[0.03] to-transparent" />
 
-      {/* Hero Section */}
-      <section className="relative z-10 min-h-screen flex flex-col items-center justify-center text-center p-4 pt-20">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-100 bg-white/5 blur-[120px] rounded-full -z-10" />
+      {/* ══════════════════════════════════════════════════════════════
+          HERO SECTION
+      ══════════════════════════════════════════════════════════════ */}
+      <section
+        ref={heroRef}
+        className="relative z-10 min-h-screen flex flex-col items-center justify-center text-center px-4 overflow-hidden"
+      >
+        <GlowOrb className="w-[700px] h-[400px] bg-white/[0.04] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <GlowOrb className="w-[300px] h-[300px] bg-blue-500/[0.05] top-1/4 right-1/4" />
 
-        <p className="text-xs md:text-base uppercase tracking-[0.2em] md:tracking-[0.3em] mb-6 text-white/50 border border-white/10 px-3 md:px-4 py-2 rounded-full backdrop-blur-sm">
-          Est. 2001 • BIT Mesra
-        </p>
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/40 to-transparent pointer-events-none" />
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black to-transparent pointer-events-none" />
 
-        <div className="overflow-hidden mb-4">
-          <m.h1
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            transition={{ ease: 'linear', duration: 0.3 }}
-            className="text-5xl sm:text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/40 pb-2 px-4"
+        <m.div
+          style={{ opacity: heroOpacity, y: springHeroY }}
+          className="flex flex-col items-center"
+        >
+          <m.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-xs md:text-sm uppercase tracking-[0.4em] mb-8 text-white/40 border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm"
           >
-            ROBOLUTION
-          </m.h1>
-        </div>
+            Est. 2001 • BIT Mesra
+          </m.p>
 
-        <p className="text-lg sm:text-xl md:text-3xl text-white/70 mb-10 font-light max-w-3xl leading-relaxed px-4">
-          Pioneering Innovation. Redefining Robotics.
-          <span className="block text-sm md:text-lg text-white/40 mt-2 font-normal">
-            The Official Robotics Club of BIT Mesra
-          </span>
-        </p>
-
-        <div className="flex flex-wrap justify-center gap-3 md:gap-4 px-4">
-          <Link href="/about">
-            <Button className="rounded-full px-6 md:px-8 py-4 md:py-6 text-base md:text-lg font-semibold bg-white text-black hover:bg-gray-100 transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-white/20">
-              About Us
-            </Button>
-          </Link>
-          <Link href="/contact">
-            <Button
-              variant="outline"
-              className="rounded-full bg-transparent px-6 md:px-8 py-4 md:py-6 text-base md:text-lg font-semibold border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-sm"
+          <div className="overflow-hidden mb-4">
+            <m.h1
+              initial={{ y: '120%' }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: 0.3 }}
+              className="text-[clamp(3rem,12vw,9rem)] font-black tracking-tighter leading-none"
+              style={{
+                background: 'linear-gradient(180deg, #fff 0%, rgba(255,255,255,0.5) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
             >
-              Contact Us
-            </Button>
-          </Link>
-        </div>
+              ROBOLUTION
+            </m.h1>
+          </div>
+
+          <m.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="text-base md:text-xl text-white/40 mb-10 font-light max-w-xl leading-relaxed"
+          >
+            Pioneering Innovation.{' '}
+            <span className="text-white/25">Redefining Robotics.</span>
+          </m.p>
+
+          <m.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="flex flex-wrap justify-center gap-3"
+          >
+            <Link href="/about">
+              <Button className="group rounded-full px-7 py-5 text-sm md:text-base font-semibold bg-white text-black hover:bg-white/90 transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.2)]">
+                Explore More
+                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+            <Link href="/contact">
+              <Button
+                variant="outline"
+                className="rounded-full bg-transparent px-7 py-5 text-sm md:text-base font-semibold border-white/20 text-white hover:bg-white/5 hover:border-white/40 transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-sm"
+              >
+                Contact Us
+              </Button>
+            </Link>
+          </m.div>
+        </m.div>
+
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2"
+        >
+          <span className="text-[10px] uppercase tracking-[0.35em] text-white/25">Scroll</span>
+          <m.div animate={{ y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }}>
+            <ChevronDown className="w-4 h-4 text-white/25" />
+          </m.div>
+        </m.div>
       </section>
 
-      {/* About Section */}
-      <section className="relative z-10 py-16 px-4">
+      {/* ══════════════════════════════════════════════════════════════
+          ABOUT SECTION
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative z-10 py-32 px-4">
+        <GlowOrb className="w-[400px] h-[400px] bg-white/[0.04] -top-20 -left-20" />
         <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="grid md:grid-cols-2 gap-20 items-center">
             <div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-                A Legacy of <br />
-                <span className="text-white/50">Excellence and Innovation.</span>
+              <SectionLabel>Our Story</SectionLabel>
+              <h2 className="text-4xl md:text-6xl font-black mb-8 leading-[1.05] tracking-tight">
+                A Legacy of<br />
+                <span style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.2) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                  Excellence.
+                </span>
               </h2>
-              <div className="space-y-6 text-lg text-white/60 leading-relaxed">
+              <div className="space-y-5 text-base md:text-lg text-white/50 leading-relaxed">
                 <p>
-                  Founded in 2001, <strong>Robolution</strong> stands as a center of innovation and
-                  teamwork, blending mechanics, electronics, and programming. We nurture a spirit of
-                  innovation that turns concepts into real-world creations.
+                  Founded in 2001, <strong className="text-white/80">Robolution</strong> stands as a center of innovation and teamwork, blending mechanics, electronics, and programming.
                 </p>
                 <p>
-                  We proudly represent BIT Mesra as <strong>Team Pratyunmis</strong> at ABU ROBOCON,
-                  arguably the most prestigious international robotics contest. In 2021, we made
-                  history by earning a perfect score of 100 in 3D design analysis.
+                  We proudly represent BIT Mesra as <strong className="text-white/80">Team Pratyunmis</strong> at ABU ROBOCON — arguably the most prestigious international robotics contest. In 2021, we made history by earning a perfect score of 100 in 3D design analysis.
                 </p>
+              </div>
+              <div className="mt-10">
+                <Link href="/about">
+                  <Button variant="ghost" className="text-white/60 hover:text-white px-0 gap-2 group">
+                    Read our full story
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </Link>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {stats.map((stat, i) => (
-                <div
+                <m.div
                   key={i}
-                  className="bg-white/5 border border-white/10 p-6 rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-colors group"
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="group relative overflow-hidden"
                 >
-                  <stat.icon className="w-8 h-8 mb-4 text-white/50 group-hover:text-white transition-colors" />
-                  <div className="text-3xl font-bold mb-1 flex items-center">
-                    <CountUp
-                      from={0}
-                      to={stat.value}
-                      // separator=","
-                      direction="up"
-                      duration={0.5}
-                      delay={0.1}
-                      startWhen={true}
-                      className="count-up-text"
-                    />
-                    <PlusIcon className="font-bold h-7 w-7" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/[0.06] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
+                  <div className="relative bg-white/[0.03] border border-white/[0.08] p-6 md:p-8 rounded-2xl backdrop-blur-sm hover:border-white/20 transition-all duration-500">
+                    <stat.icon className="w-6 h-6 mb-5 text-white/30 group-hover:text-white/60 transition-colors" />
+                    <div className="text-3xl md:text-4xl font-black mb-1 flex items-end gap-0.5">
+                      <CountUp from={0} to={stat.value} direction="up" duration={0.5} delay={0.1} startWhen={true} className="count-up-text" />
+                      <PlusIcon className="w-5 h-5 mb-1 text-white/40" />
+                    </div>
+                    <div className="text-xs text-white/40 uppercase tracking-widest font-medium">{stat.label}</div>
                   </div>
-                  <div className="text-sm text-white/50 uppercase tracking-wider">{stat.label}</div>
-                </div>
+                </m.div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* What We Do Section */}
-      <section className="relative z-10 py-32 px-4 bg-black/50 backdrop-blur-lg border-y border-white/5">
+      {/* ══════════════════════════════════════════════════════════════
+          WHAT WE DO
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative z-10 py-32 px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none" />
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">What We Do</h2>
-            <p className="text-xl text-white/50 max-w-2xl mx-auto">
-              Fostering technical skills and innovation through hands-on learning and competition.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-linear-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
-              <div className="relative bg-black/40 border border-white/10 p-8 rounded-3xl h-full backdrop-blur-md">
-                <Code2 className="w-10 h-10 mb-6 text-white" />
-                <h3 className="text-2xl font-bold mb-3">Workshops &amp; Training</h3>
-                <p className="text-white/60">
-                  Regular hands-on sessions on mechanics, electronics, and coding to skill up
-                  students from scratch.
-                </p>
-              </div>
-            </div>
-            <div className="relative group">
-              <div className="absolute inset-0 bg-linear-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
-              <div className="relative bg-black/40 border border-white/10 p-8 rounded-3xl h-full backdrop-blur-md">
-                <Trophy className="w-10 h-10 mb-6 text-white" />
-                <h3 className="text-2xl font-bold mb-3">RoboSaga</h3>
-                <p className="text-white/60">
-                  Our flagship 3-day annual techno-management fest featuring hackathons,
-                  exhibitions, and robot wars.
-                </p>
-              </div>
-            </div>
-            <div className="relative group">
-              <div className="absolute inset-0 bg-linear-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
-              <div className="relative bg-black/40 border border-white/10 p-8 rounded-3xl h-full backdrop-blur-md">
-                <Cpu className="w-10 h-10 mb-6 text-white" />
-                <h3 className="text-2xl font-bold mb-3">Projects &amp; Research</h3>
-                <p className="text-white/60">
-                  Building industry-grade robots, participating in ABU ROBOCON, and pioneering new
-                  tech solutions.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Achievements Section */}
-      <section className="relative z-10 py-32 px-4 bg-black/50 backdrop-blur-lg border-y border-white/5">
-        <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-white/5 blur-[150px] rounded-full" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white/5 blur-[150px] rounded-full" />
-
-        <div className="max-w-6xl mx-auto relative">
-          <div className="text-center mb-16">
-            <div className="inline-block mb-6">
-              <span className="text-xs md:text-sm uppercase tracking-[0.3em] text-white/50 font-semibold border border-white/10 px-4 py-2 rounded-full backdrop-blur-sm">
-                Our Achievements
-              </span>
-            </div>
-            <h2 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/40">
-                Hall of Fame
-              </span>
+            <SectionLabel>What We Do</SectionLabel>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight">
+              Built for<br />
+              <span className="text-white/30">Builders.</span>
             </h2>
-            <p className="text-lg md:text-xl text-white/50 max-w-3xl mx-auto">
-              Proudly representing BIT Mesra at national and international robotics competitions
-            </p>
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Achievement 1 */}
-            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
-              <div className="relative flex gap-6">
-                <div className="shrink-0">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
-                    <Trophy className="w-8 h-8 text-black" />
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              { icon: Code2, title: 'Workshops & Training', desc: 'Regular hands-on sessions on mechanics, electronics, and coding to skill up students from scratch.', tag: 'Learning' },
+              { icon: Trophy, title: 'RoboSaga', desc: 'Our flagship 3-day annual techno-management fest featuring hackathons, exhibitions, and robot wars.', tag: 'Competition' },
+              { icon: Cpu, title: 'Projects & Research', desc: 'Building industry-grade robots, participating in ABU ROBOCON, and pioneering new tech solutions.', tag: 'Innovation' },
+            ].map((item, i) => (
+              <m.div
+                key={i}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15, duration: 0.6 }}
+                className="group relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 rounded-3xl" />
+                <div className="relative bg-white/[0.03] border border-white/[0.07] rounded-3xl p-8 h-full backdrop-blur-sm hover:border-white/20 transition-all duration-500 overflow-hidden">
+                  <div className="absolute top-4 right-4">
+                    <span className="text-[10px] uppercase tracking-widest text-white/20 border border-white/10 px-2 py-1 rounded-full">{item.tag}</span>
                   </div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
-                    Robocon 2013
+                  <div className="w-12 h-12 rounded-2xl bg-white/[0.06] border border-white/[0.08] flex items-center justify-center mb-6 group-hover:bg-white/10 transition-colors">
+                    <item.icon className="w-5 h-5 text-white/60" />
                   </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
-                    Best Rookie Team
-                  </h3>
-                  <p className="text-white/60 leading-relaxed">
-                    Recognized as the best newcomer team in our first year of participation at ABU
-                    Robocon
-                  </p>
+                  <h3 className="text-xl font-bold mb-3 text-white">{item.title}</h3>
+                  <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
                 </div>
-              </div>
-            </div>
-
-            {/* Achievement 2 */}
-            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
-              <div className="relative flex gap-6">
-                <div className="shrink-0">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
-                    <Award className="w-8 h-8 text-black" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
-                    Robocon 2015
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
-                    ₹50,000 Award by MathWorks
-                  </h3>
-                  <p className="text-white/60 leading-relaxed">
-                    Won the prestigious prize for best use of MathWorks tools in robot development
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Achievement 3 */}
-            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
-              <div className="relative flex gap-6">
-                <div className="shrink-0">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
-                    <Medal className="w-8 h-8 text-black" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
-                    Robocon 2015
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
-                    Best Non-Quarterfinalist Team
-                  </h3>
-                  <p className="text-white/60 leading-relaxed">
-                    Awarded for exceptional performance and innovation among non-quarterfinalist
-                    teams
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Achievement 4 */}
-            <div className="group relative bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-xl hover:bg-white/10 hover:border-white/20 transition-all duration-500 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full opacity-0 group-hover:opacity-100 transition-all" />
-              <div className="relative flex gap-6">
-                <div className="shrink-0">
-                  <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-white/20 group-hover:scale-110 transition-transform">
-                    <Star className="w-8 h-8 text-black" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="text-white/50 text-sm font-semibold uppercase tracking-wider mb-2">
-                    Techfest IIT Bombay 2015
-                  </div>
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
-                    2nd Prize in Pixelate
-                  </h3>
-                  <p className="text-white/60 leading-relaxed">
-                    Secured second place in Pixelate, an image processing robotics event at IIT
-                    Bombay&apos;s Techfest
-                  </p>
-                </div>
-              </div>
-            </div>
+              </m.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Since 2001 Legacy Section - EXPANDED */}
+      {/* ══════════════════════════════════════════════════════════════
+          ACHIEVEMENTS
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative z-10 py-32 px-4">
+        <GlowOrb className="w-[500px] h-[500px] bg-white/[0.03] top-1/2 right-0 -translate-y-1/2" />
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-20">
+            <SectionLabel>Hall of Fame</SectionLabel>
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight">
+              Our Victories.<br />
+              <span className="text-white/30">Our Legacy.</span>
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {[
+              { icon: Trophy, year: 'Robocon 2013', title: 'Best Rookie Team', desc: 'Recognized as the best newcomer team in our first year of participation at ABU Robocon' },
+              { icon: Award, year: 'Robocon 2015', title: '₹50,000 Award by MathWorks', desc: 'Won the prestigious prize for best use of MathWorks tools in robot development' },
+              { icon: Medal, year: 'Robocon 2015', title: 'Best Non-Quarterfinalist', desc: 'Awarded for exceptional performance and innovation among non-quarterfinalist teams' },
+              { icon: Star, year: 'Techfest IIT Bombay 2015', title: '2nd Prize in Pixelate', desc: "Secured second place in Pixelate, an image processing robotics event at IIT Bombay's Techfest" },
+            ].map((item, i) => (
+              <m.div
+                key={i}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="group relative bg-white/[0.03] border border-white/[0.07] rounded-3xl p-8 hover:border-white/20 hover:bg-white/[0.06] transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'radial-gradient(circle at top right, rgba(255,255,255,0.05) 0%, transparent 70%)' }} />
+                <div className="flex gap-6">
+                  <div className="shrink-0 w-14 h-14 rounded-2xl bg-white flex items-center justify-center shadow-lg shadow-white/10 group-hover:scale-110 transition-transform duration-300">
+                    <item.icon className="w-7 h-7 text-black" />
+                  </div>
+                  <div>
+                    <div className="text-white/30 text-xs font-semibold uppercase tracking-widest mb-2">{item.year}</div>
+                    <h3 className="text-lg md:text-xl font-bold text-white mb-2">{item.title}</h3>
+                    <p className="text-white/50 text-sm leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              </m.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════
+          SINCE 2001
+      ══════════════════════════════════════════════════════════════ */}
       <section className="relative z-10 py-40 px-4 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-b from-black via-white/5 to-black" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-white/10 blur-[150px] rounded-full" />
-
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-white/[0.03] to-black pointer-events-none" />
+        <GlowOrb className="w-[600px] h-[600px] bg-white/[0.06] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
         <div className="max-w-7xl mx-auto text-center relative">
-          {/* Main Year Display */}
-          <div className="mb-16">
-            <div className="inline-block mb-8">
-              <p className="text-sm md:text-base uppercase tracking-[0.5em] text-white/50 mb-2 font-semibold">
-                Proudly Established
-              </p>
-              <div className="h-px w-32 mx-auto bg-linear-to-r from-transparent via-white/30 to-transparent" />
-            </div>
-
-            <div className="relative inline-block mb-12">
-              <div className="absolute inset-0 bg-white/20 blur-[120px] animate-pulse" />
-              <h2 className="relative text-[140px] md:text-[280px] font-black tracking-tighter leading-none bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/20 drop-shadow-2xl">
-                2001
-              </h2>
-            </div>
-
-            <p className="text-2xl md:text-4xl text-white font-light mb-6 max-w-4xl mx-auto leading-relaxed">
-              Over <span className="font-bold text-white">two decades</span> of pioneering
-              innovation in robotics
-            </p>
-            <p className="text-lg md:text-xl text-white/50 max-w-3xl mx-auto">
-              From humble beginnings to becoming one of India&apos;s premier robotics clubs,
-              we&apos;ve been at the forefront of technological advancement.
-            </p>
+          <SectionLabel>Proudly Established</SectionLabel>
+          <m.h2
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="text-[100px] sm:text-[180px] md:text-[260px] font-black tracking-tighter leading-none mb-12"
+            style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.1) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
+          >
+            2001
+          </m.h2>
+          <p className="text-xl md:text-3xl text-white/60 font-light mb-4 max-w-3xl mx-auto">
+            Over <span className="font-bold text-white">two decades</span> of pioneering innovation in robotics
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-16">
+            {[{ val: '24+', label: 'Years' }, { val: '1000+', label: 'Students Trained' }, { val: '50+', label: 'Competitions Won' }, { val: '∞', label: 'Innovation' }].map((s, i) => (
+              <m.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300">
+                <div className="text-3xl md:text-5xl font-black text-white mb-2">{s.val}</div>
+                <div className="text-xs text-white/40 uppercase tracking-wider">{s.label}</div>
+              </m.div>
+            ))}
           </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 max-w-5xl mx-auto mb-16">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition-all hover:scale-105">
-              <div className="text-3xl md:text-6xl font-black text-white mb-3">24+</div>
-              <div className="text-sm text-white/60 uppercase tracking-wider font-semibold">
-                Years of Excellence
-              </div>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition-all hover:scale-105">
-              <div className="text-3xl md:text-6xl font-black text-white mb-3">1000+</div>
-              <div className="text-sm text-white/60 uppercase tracking-wider font-semibold">
-                Students Trained
-              </div>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition-all hover:scale-105">
-              <div className="text-3xl md:text-6xl font-black text-white mb-3">50+</div>
-              <div className="text-sm text-white/60 uppercase tracking-wider font-semibold">
-                Competitions Won
-              </div>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-sm hover:bg-white/10 transition-all hover:scale-105">
-              <div className="text-3xl md:text-6xl font-black text-white mb-3">∞</div>
-              <div className="text-sm text-white/60 uppercase tracking-wider font-semibold">
-                Innovation
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline Highlights */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            <div className="bg-linear-to-br from-white/10 to-white/5 border border-white/10 rounded-3xl p-8 text-left backdrop-blur-md">
-              <div className="text-4xl font-bold text-white/90 mb-3">2001</div>
-              <h4 className="text-xl font-bold text-white mb-2">Foundation</h4>
-              <p className="text-white/60">
-                Robolution was established as BIT Mesra&apos;s official robotics club
-              </p>
-            </div>
-            <div className="bg-linear-to-br from-white/10 to-white/5 border border-white/10 rounded-3xl p-8 text-left backdrop-blur-md">
-              <div className="text-4xl font-bold text-white/90 mb-3">2021</div>
-              <h4 className="text-xl font-bold text-white mb-2">Perfect Score</h4>
-              <p className="text-white/60">Achieved 100/100 in 3D design analysis at ABU ROBOCON</p>
-            </div>
-            <div className="bg-linear-to-br from-white/10 to-white/5 border border-white/10 rounded-3xl p-8 text-left backdrop-blur-md">
-              <div className="text-4xl font-bold text-white/90 mb-3">2025</div>
-              <h4 className="text-xl font-bold text-white mb-2">Future Forward</h4>
-              <p className="text-white/60">
-                Continuing to push boundaries in robotics and innovation
-              </p>
-            </div>
+          <div className="grid md:grid-cols-3 gap-4 max-w-5xl mx-auto mt-8">
+            {[{ year: '2001', title: 'Foundation', desc: "Robolution was established as BIT Mesra's official robotics club" }, { year: '2021', title: 'Perfect Score', desc: 'Achieved 100/100 in 3D design analysis at ABU ROBOCON' }, { year: '2025', title: 'Future Forward', desc: 'Continuing to push boundaries in robotics and innovation' }].map((item, i) => (
+              <m.div key={i} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.15 }} className="bg-gradient-to-br from-white/[0.06] to-white/[0.02] border border-white/[0.08] rounded-3xl p-8 text-left hover:border-white/20 transition-all">
+                <div className="text-3xl font-black text-white/60 mb-2">{item.year}</div>
+                <h4 className="text-lg font-bold text-white mb-2">{item.title}</h4>
+                <p className="text-white/40 text-sm leading-relaxed">{item.desc}</p>
+              </m.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Sponsors Section */}
       {sponsors.length > 0 && <SponsorsSection sponsors={sponsors} />}
-
-      {/* Gallery Preview Section */}
       {galleryImages.length > 0 && <GalleryPreview images={galleryImages} />}
 
-      {/* Join the Revolution CTA */}
-      <section className="relative z-10 py-32 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl md:text-6xl font-bold mb-8">Join the Revolution</h2>
-          <p className="text-xl md:text-2xl text-white/70 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Whether you&apos;re a curious beginner or a seasoned pro, Robolution offers a platform
-            to learn, build, and innovate together.
+      {/* ══════════════════════════════════════════════════════════════
+          JOIN CTA
+      ══════════════════════════════════════════════════════════════ */}
+      <section className="relative z-10 py-40 px-4 overflow-hidden">
+        <GlowOrb className="w-[500px] h-[300px] bg-white/[0.05] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <div className="max-w-4xl mx-auto text-center relative">
+          <SectionLabel>Get Involved</SectionLabel>
+          <h2 className="text-5xl md:text-7xl font-black mb-6 tracking-tight">Join the<br />Revolution.</h2>
+          <p className="text-lg md:text-xl text-white/40 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Whether you&apos;re a curious beginner or a seasoned pro, Robolution offers a platform to learn, build, and innovate together.
           </p>
-          <div className="flex flex-wrap justify-center gap-6">
+          <div className="flex flex-wrap justify-center gap-4">
             <Link href="mailto:pratyumnis@bitmesra.ac.in">
-              <Button className="gap-3 bg-linear-to-r from-white to-gray-200 text-black shadow-lg shadow-white/20 hover:shadow-xl hover:shadow-white/30 rounded-full px-10 py-7 text-lg font-bold transition-all duration-300 hover:scale-105 active:scale-95">
-                <Mail className="w-5 h-5" />
-                Contact Us
+              <Button className="gap-3 bg-white text-black hover:bg-white/90 rounded-full px-9 py-6 text-base font-bold transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_40px_rgba(255,255,255,0.15)]">
+                <Mail className="w-4 h-4" /> Contact Us
               </Button>
             </Link>
             <Link href="https://www.linkedin.com/company/robolution-bit-mesra">
-              <Button
-                variant="outline"
-                className="gap-3 border-white/30 bg-white/5 text-white shadow-md shadow-white/5 hover:bg-white/10 hover:border-white/50 hover:shadow-lg hover:shadow-white/10 rounded-full px-10 py-7 text-lg font-bold transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-sm"
-              >
-                <FaLinkedin className="w-5 h-5" />
-                Follow Us
+              <Button variant="outline" className="gap-3 border-white/20 bg-white/[0.03] text-white hover:bg-white/[0.08] hover:border-white/40 rounded-full px-9 py-6 text-base font-bold transition-all duration-300 hover:scale-105 active:scale-95 backdrop-blur-sm">
+                <FaLinkedin className="w-4 h-4" /> Follow Us
               </Button>
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Newsletter Section - GRAND & SEPARATE */}
-      <section
-        id="newsletter"
-        className="relative z-10 py-32 px-4 overflow-hidden border-y border-white/10"
-      >
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-white/5 to-transparent" />
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/10 blur-[120px] rounded-full" />
-
-        <div className="max-w-5xl mx-auto text-center relative px-4">
-          <div className="mb-12">
-            <div className="inline-block mb-6">
-              <span className="text-xs md:text-sm uppercase tracking-[0.3em] md:tracking-[0.4em] text-white/50 font-semibold">
-                Newsletter
-              </span>
+      {/* ══════════════════════════════════════════════════════════════
+          NEWSLETTER
+      ══════════════════════════════════════════════════════════════ */}
+      <section id="newsletter" className="relative z-10 py-32 px-4 border-t border-white/[0.06] overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.02] to-transparent pointer-events-none" />
+        <div className="max-w-2xl mx-auto text-center relative">
+          <SectionLabel>Newsletter</SectionLabel>
+          <h2 className="text-4xl md:text-6xl font-black mb-4 tracking-tight">Stay in the Loop</h2>
+          <p className="text-white/40 mb-10 leading-relaxed">
+            Get exclusive updates on workshops, competitions, and behind-the-scenes content from Robolution.
+          </p>
+          <form onSubmit={handleNewsletterSubmit}>
+            <div className="bg-white/[0.04] border border-white/[0.10] rounded-3xl p-6 md:p-10 backdrop-blur-xl">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  disabled={isSubmitting}
+                  className="bg-white/[0.06] border-white/[0.12] text-white placeholder:text-white/30 focus-visible:ring-white/20 focus-visible:border-white/30 h-13 text-sm px-5 rounded-xl disabled:opacity-50"
+                />
+                <Button type="submit" disabled={isSubmitting} className="h-13 px-7 bg-white text-black hover:bg-white/90 font-bold shrink-0 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:hover:scale-100">
+                  <Send className="w-4 h-4 mr-2" />
+                  {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                </Button>
+              </div>
+              {message && (
+                <m.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className={`text-sm mt-4 ${message.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                  {message.text}
+                </m.p>
+              )}
+              <p className="text-white/30 flex items-center justify-center text-xs mt-5">
+                <LockIcon className="w-3.5 h-3.5 mr-2 shrink-0" /> We respect your privacy. Unsubscribe anytime.
+              </p>
             </div>
-            <h2 className="text-4xl md:text-7xl font-black mb-6 leading-tight px-4">
-              Stay in the Loop
-            </h2>
-            <p className="text-base md:text-2xl text-white/60 max-w-3xl mx-auto leading-relaxed px-4">
-              Get exclusive updates on workshops, competitions, tech talks, and behind-the-scenes
-              content from Robolution. Join our community of innovators.
-            </p>
-          </div>
-
-          <div className="max-w-2xl mx-auto">
-            <form onSubmit={handleNewsletterSubmit}>
-              <div className="bg-white/5 border border-white/20 rounded-3xl p-6 md:p-12 backdrop-blur-xl">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <Input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={isSubmitting}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/40 focus-visible:ring-2 focus-visible:ring-white/30 focus-visible:border-white/40 h-14 md:h-16 text-base md:text-lg px-4 md:px-6 rounded-2xl disabled:opacity-50"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="h-14 md:h-16 px-8 md:px-10 bg-white text-black hover:bg-gray-100 font-bold text-base md:text-lg shrink-0 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-white/20 hover:shadow-xl hover:shadow-white/30 disabled:opacity-50 disabled:hover:scale-100"
-                  >
-                    <Send className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                    {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-                  </Button>
+          </form>
+          <div className="mt-8 flex items-center justify-center gap-8 flex-wrap">
+            {[['500+', 'Subscribers'], ['Weekly', 'Updates'], ['100%', 'Free']].map(([val, label], i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <div className="h-6 w-px bg-white/10" />}
+                <div className="text-center">
+                  <div className="text-xl font-bold text-white">{val}</div>
+                  <div className="text-xs text-white/30 uppercase tracking-wider">{label}</div>
                 </div>
-
-                {message && (
-                  <m.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`text-sm mt-4 ${
-                      message.type === 'success' ? 'text-green-400' : 'text-red-400'
-                    }`}
-                  >
-                    {message.text}
-                  </m.p>
-                )}
-
-                <p className="text-white/40 flex items-center justify-center md:justify-start text-xs md:text-sm mt-6">
-                  <LockIcon className="w-4 h-4 md:w-5 md:h-5 mr-2 shrink-0" /> We respect your
-                  privacy. Unsubscribe anytime.
-                </p>
-              </div>
-            </form>
-
-            {/* Social Proof */}
-            <div className="mt-10 flex items-center justify-center gap-6 md:gap-8 flex-wrap">
-              <div className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-white">500+</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Subscribers</div>
-              </div>
-              <div className="h-8 w-px bg-white/20" />
-              <div className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-white">Weekly</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Updates</div>
-              </div>
-              <div className="h-8 w-px bg-white/20" />
-              <div className="text-center">
-                <div className="text-xl md:text-2xl font-bold text-white">100%</div>
-                <div className="text-xs text-white/50 uppercase tracking-wider">Free</div>
-              </div>
-            </div>
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </section>

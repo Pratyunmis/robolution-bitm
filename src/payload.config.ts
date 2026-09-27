@@ -59,7 +59,7 @@ export default buildConfig({
     InventoryTransactions,
   ],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || '',
+  secret: process.env.PAYLOAD_SECRET || 'HAODEHDEIO',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

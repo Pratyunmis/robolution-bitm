@@ -1,7 +1,6 @@
 import { GalleryClient } from '@/components/GalleryClient'
 import { Metadata } from 'next'
-import { getPayload } from 'payload'
-import config from '@/payload.config'
+import { getSafePayload } from '@/lib/getSafePayload'
 import type { Gallery as GalleryType, Media } from '@/payload-types'
 
 export const metadata: Metadata = {
@@ -24,7 +23,8 @@ interface TransformedGalleryImage {
 
 async function getGalleryImages(): Promise<TransformedGalleryImage[]> {
   try {
-    const payload = await getPayload({ config })
+    const payload = await getSafePayload()
+    if (!payload) return []
 
     const gallery = await payload.find({
       collection: 'gallery',
@@ -59,8 +59,7 @@ async function getGalleryImages(): Promise<TransformedGalleryImage[]> {
     })
 
     return transformedImages
-  } catch (error) {
-    console.error('Error fetching gallery images:', error)
+  } catch {
     return []
   }
 }

@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '@/payload.config'
+import { getSafePayload } from '@/lib/getSafePayload'
 import DarkVeil from '@/components/DarkVeil'
 import { renderLexical } from '@/lib/lexicalToHtml'
 import { notFound } from 'next/navigation'
@@ -24,13 +23,17 @@ export const metadata: Metadata = {
 export const revalidate = 1800 // Revalidate every 30 minutes
 
 const AboutPage = async () => {
-  const payload = await getPayload({ config })
-  const { docs } = await payload.find({
-    collection: 'about-us',
-    limit: 1,
-  })
-
-  const aboutData = docs[0]
+  let aboutData: any = null
+  try {
+    const payload = await getSafePayload()
+    if (payload) {
+      const { docs } = await payload.find({
+        collection: 'about-us',
+        limit: 1,
+      })
+      aboutData = docs[0]
+    }
+  } catch {}
 
   if (!aboutData) {
     return notFound()

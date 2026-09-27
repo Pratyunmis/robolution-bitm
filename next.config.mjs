@@ -21,6 +21,8 @@ const nextConfig = {
 
     return webpackConfig
   },
+  // Allow Three.js packages to be transpiled
+  transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
 }
 
 export default withPayload(nextConfig, { devBundleServerPackages: false })

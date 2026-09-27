@@ -1,5 +1,4 @@
-import { getPayload } from 'payload'
-import config from '@/payload.config'
+import { getSafePayload } from '@/lib/getSafePayload'
 import EventsPageClient from './page.client'
 import type { Metadata } from 'next'
 
@@ -21,13 +20,18 @@ export const metadata: Metadata = {
 export const revalidate = 1800
 
 export default async function EventsPage() {
-  const payload = await getPayload({ config })
-
-  const { docs: events } = await payload.find({
-    collection: 'events',
-    limit: 100, // Adjust limit as needed
-    sort: '-eventDate', // Sort by eventDate descending
-  })
+  let events: any[] = []
+  try {
+    const payload = await getSafePayload()
+    if (payload) {
+      const res = await payload.find({
+        collection: 'events',
+        limit: 100,
+        sort: '-eventDate',
+      })
+      events = res.docs
+    }
+  } catch {}
 
   return <EventsPageClient events={events} />
 }
