@@ -191,8 +191,9 @@ const MoltenMetal: React.FC<MoltenMetalProps> = ({
       webgl: 2,
       alpha: true,
       premultipliedAlpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
+      antialias: true,
+      dpr: Math.min(window.devicePixelRatio, 1.5),
+      powerPreference: 'high-performance',
     })
 
     const gl = renderer.gl

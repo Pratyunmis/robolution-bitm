@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect } from 'react'
 
 // Authentic Robolution BIT Mesra photos from gallery and archives
 const row1Source = [
@@ -21,25 +21,35 @@ const row2Source = [
   '/og-image.png',
 ]
 
-// Tripled for seamless infinite horizontal scroll
+// Quadrupled for seamless infinite horizontal scroll
 const row1Images = [...row1Source, ...row1Source, ...row1Source, ...row1Source]
 const row2Images = [...row2Source, ...row2Source, ...row2Source, ...row2Source]
 
 export function MarqueeSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
-  const [scrollOffset, setScrollOffset] = useState(0)
+  const row1Ref = useRef<HTMLDivElement>(null)
+  const row2Ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     let ticking = false
+    let isVisible = true
 
     const handleScroll = () => {
+      if (!isVisible) return
       if (!ticking) {
         window.requestAnimationFrame(() => {
           if (sectionRef.current) {
             const rect = sectionRef.current.getBoundingClientRect()
             const sectionTop = window.scrollY + rect.top
-            const offset = (window.scrollY - sectionTop + window.innerHeight) * 0.25
-            setScrollOffset(offset)
+            const offset = (window.scrollY - sectionTop + window.innerHeight) * 0.28
+
+            // Direct GPU transform update on refs (zero React re-renders, 60fps)
+            if (row1Ref.current) {
+              row1Ref.current.style.transform = `translate3d(${offset - 250}px, 0px, 0px)`
+            }
+            if (row2Ref.current) {
+              row2Ref.current.style.transform = `translate3d(${-(offset - 250)}px, 0px, 0px)`
+            }
           }
           ticking = false
         })
@@ -47,10 +57,25 @@ export function MarqueeSection() {
       }
     }
 
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting
+        if (isVisible) {
+          handleScroll()
+        }
+      },
+      { rootMargin: '200px 0px' },
+    )
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
 
     return () => {
+      observer.disconnect()
       window.removeEventListener('scroll', handleScroll)
     }
   }, [])
@@ -58,25 +83,23 @@ export function MarqueeSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-transparent py-16 sm:py-24 overflow-hidden select-none"
+      className="relative w-full bg-transparent py-14 sm:py-20 overflow-hidden select-none"
     >
       {/* Side gradient fade masks for smooth transition */}
-      <div className="absolute top-0 left-0 bottom-0 w-20 sm:w-36 bg-gradient-to-r from-[#0C0C0C] to-transparent z-10 pointer-events-none" />
-      <div className="absolute top-0 right-0 bottom-0 w-20 sm:w-36 bg-gradient-to-l from-[#0C0C0C] to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 bottom-0 w-20 sm:w-40 bg-gradient-to-r from-[#0C0C0C] to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 right-0 bottom-0 w-20 sm:w-40 bg-gradient-to-l from-[#0C0C0C] to-transparent z-10 pointer-events-none" />
 
-      <div className="flex flex-col gap-4 w-full">
+      <div className="flex flex-col gap-4 sm:gap-6 w-full">
         {/* Row 1: Moves RIGHT on scroll */}
         <div
-          className="flex gap-4 w-max"
-          style={{
-            transform: `translate3d(${scrollOffset - 200}px, 0px, 0px)`,
-            willChange: 'transform',
-          }}
+          ref={row1Ref}
+          className="flex gap-4 sm:gap-6 w-max will-change-transform"
+          style={{ transform: 'translate3d(-250px, 0px, 0px)' }}
         >
           {row1Images.map((src, i) => (
             <div
               key={`row1-${i}`}
-              className="w-[280px] sm:w-[360px] md:w-[420px] h-[180px] sm:h-[220px] md:h-[260px] min-w-[280px] sm:min-w-[360px] md:min-w-[420px] shrink-0 rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/30 transition-all duration-300 group"
+              className="w-[280px] sm:w-[360px] md:w-[420px] h-[180px] sm:h-[220px] md:h-[260px] min-w-[280px] sm:min-w-[360px] md:min-w-[420px] shrink-0 rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all duration-300 group"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -92,16 +115,14 @@ export function MarqueeSection() {
 
         {/* Row 2: Moves LEFT on scroll (Authentic Robolution BIT Mesra Photos) */}
         <div
-          className="flex gap-4 w-max"
-          style={{
-            transform: `translate3d(${-(scrollOffset - 200)}px, 0px, 0px)`,
-            willChange: 'transform',
-          }}
+          ref={row2Ref}
+          className="flex gap-4 sm:gap-6 w-max will-change-transform"
+          style={{ transform: 'translate3d(250px, 0px, 0px)' }}
         >
           {row2Images.map((src, i) => (
             <div
               key={`row2-${i}`}
-              className="w-[280px] sm:w-[360px] md:w-[420px] h-[180px] sm:h-[220px] md:h-[260px] min-w-[280px] sm:min-w-[360px] md:min-w-[420px] shrink-0 rounded-2xl overflow-hidden bg-white/5 border border-white/10 hover:border-white/30 transition-all duration-300 group"
+              className="w-[280px] sm:w-[360px] md:w-[420px] h-[180px] sm:h-[220px] md:h-[260px] min-w-[280px] sm:min-w-[360px] md:min-w-[420px] shrink-0 rounded-2xl overflow-hidden bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all duration-300 group"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

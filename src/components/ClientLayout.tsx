@@ -16,7 +16,6 @@ export function ClientLayout({
 }) {
   return (
     <AuthProvider initialUser={user}>
-      <RobotCollisionLoader />
       <Navbar />
       {children}
       <Footer />
